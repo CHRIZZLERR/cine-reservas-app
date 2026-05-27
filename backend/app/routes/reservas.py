@@ -14,6 +14,10 @@ class ReservaCreate(BaseModel):
     metodo_pago: str | None = "Pago en taquilla"
 
 
+class EstadoReservaUpdate(BaseModel):
+    estado: str
+
+
 @router.get("/reservas")
 def obtener_reservas():
     conexion = obtener_conexion()
@@ -29,6 +33,7 @@ def obtener_reservas():
             r.cantidad_asientos,
             r.total,
             r.metodo_pago,
+            r.estado,
             r.fecha_reserva,
             f.fecha,
             CAST(f.hora AS CHAR) AS hora,
@@ -78,6 +83,7 @@ def obtener_reserva_por_codigo(codigo_reserva: str):
             r.cantidad_asientos,
             r.total,
             r.metodo_pago,
+            r.estado,
             r.fecha_reserva,
             f.fecha,
             CAST(f.hora AS CHAR) AS hora,
@@ -149,6 +155,61 @@ def obtener_asientos_ocupados(funcion_id: int):
     }
 
 
+@router.put("/admin/reservas/{reserva_id}/estado")
+def actualizar_estado_reserva(reserva_id: int, datos: EstadoReservaUpdate):
+    estados_validos = ["pendiente", "confirmada", "cancelada"]
+
+    nuevo_estado = datos.estado.strip().lower()
+
+    if nuevo_estado not in estados_validos:
+        raise HTTPException(
+            status_code=400,
+            detail="Estado inválido. Use: pendiente, confirmada o cancelada"
+        )
+
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+
+    try:
+        cursor.execute("""
+            SELECT id, codigo_reserva, estado
+            FROM reservas
+            WHERE id = %s
+        """, (reserva_id,))
+
+        reserva = cursor.fetchone()
+
+        if reserva is None:
+            raise HTTPException(status_code=404, detail="La reserva no existe")
+
+        cursor.execute("""
+            UPDATE reservas
+            SET estado = %s
+            WHERE id = %s
+        """, (nuevo_estado, reserva_id))
+
+        conexion.commit()
+
+        return {
+            "mensaje": "Estado de reserva actualizado correctamente",
+            "id": reserva_id,
+            "codigo_reserva": reserva["codigo_reserva"],
+            "estado_anterior": reserva["estado"],
+            "estado_nuevo": nuevo_estado
+        }
+
+    except HTTPException:
+        conexion.rollback()
+        raise
+
+    except Exception as error:
+        conexion.rollback()
+        raise HTTPException(status_code=500, detail=f"Error al actualizar estado: {str(error)}")
+
+    finally:
+        conexion.close()
+
+
 @router.post("/reservas")
 def crear_reserva(reserva: ReservaCreate):
     if len(reserva.asientos) == 0:
@@ -157,10 +218,8 @@ def crear_reserva(reserva: ReservaCreate):
     if len(reserva.asientos) > 10:
         raise HTTPException(status_code=400, detail="No se pueden reservar más de 10 asientos")
 
-    # Limpia espacios y convierte a mayúsculas
     asientos_normalizados = [asiento.strip().upper() for asiento in reserva.asientos]
 
-    # Evita asientos repetidos en la misma reserva
     if len(asientos_normalizados) != len(set(asientos_normalizados)):
         raise HTTPException(status_code=400, detail="No puedes repetir asientos en la misma reserva")
 
@@ -168,7 +227,6 @@ def crear_reserva(reserva: ReservaCreate):
     cursor = conexion.cursor(dictionary=True)
 
     try:
-        # Verificar que la función exista y obtener precio
         cursor.execute("""
             SELECT id, precio
             FROM funciones
@@ -180,7 +238,6 @@ def crear_reserva(reserva: ReservaCreate):
         if funcion is None:
             raise HTTPException(status_code=404, detail="La función no existe")
 
-        # Verificar si algún asiento ya está reservado
         placeholders = ", ".join(["%s"] * len(asientos_normalizados))
 
         cursor.execute(f"""
@@ -201,11 +258,10 @@ def crear_reserva(reserva: ReservaCreate):
         cantidad_asientos = len(asientos_normalizados)
         total = float(funcion["precio"]) * cantidad_asientos
 
-        # Crear reserva primero sin código
         cursor.execute("""
             INSERT INTO reservas
-            (funcion_id, nombre_cliente, email_cliente, telefono_cliente, cantidad_asientos, total, metodo_pago)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            (funcion_id, nombre_cliente, email_cliente, telefono_cliente, cantidad_asientos, total, metodo_pago, estado)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, 'pendiente')
         """, (
             reserva.funcion_id,
             reserva.nombre_cliente,
@@ -219,14 +275,12 @@ def crear_reserva(reserva: ReservaCreate):
         reserva_id = cursor.lastrowid
         codigo_reserva = f"CMX-{reserva_id:05d}"
 
-        # Actualizar código de reserva
         cursor.execute("""
             UPDATE reservas
             SET codigo_reserva = %s
             WHERE id = %s
         """, (codigo_reserva, reserva_id))
 
-        # Guardar asientos seleccionados
         for asiento in asientos_normalizados:
             cursor.execute("""
                 INSERT INTO asientos_reservados
@@ -247,7 +301,8 @@ def crear_reserva(reserva: ReservaCreate):
             "asientos": asientos_normalizados,
             "cantidad_asientos": cantidad_asientos,
             "total": total,
-            "metodo_pago": reserva.metodo_pago
+            "metodo_pago": reserva.metodo_pago,
+            "estado": "pendiente"
         }
 
     except HTTPException:
