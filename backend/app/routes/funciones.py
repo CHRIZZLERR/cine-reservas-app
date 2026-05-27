@@ -11,18 +11,23 @@ def obtener_funciones():
     cursor.execute("""
         SELECT 
             f.id,
+            f.pelicula_id,
+            f.sucursal_id,
             f.fecha,
-            f.hora,
+            CAST(f.hora AS CHAR) AS hora,
             f.sala,
             f.precio,
             p.titulo AS pelicula,
             p.genero,
-            p.clasificacion
+            p.clasificacion,
+            s.nombre AS sucursal,
+            s.direccion AS direccion_sucursal,
+            s.ciudad
         FROM funciones f
         INNER JOIN peliculas p ON f.pelicula_id = p.id
+        INNER JOIN sucursales s ON f.sucursal_id = s.id
     """)
 
     funciones = cursor.fetchall()
     conexion.close()
-
     return funciones
