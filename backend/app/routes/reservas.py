@@ -35,7 +35,11 @@ def obtener_reservas():
             f.sala,
             f.precio,
             p.titulo AS pelicula,
-            s.nombre AS sucursal
+            p.genero,
+            p.clasificacion,
+            s.nombre AS sucursal,
+            s.direccion AS direccion_sucursal,
+            s.ciudad
         FROM reservas r
         INNER JOIN funciones f ON r.funcion_id = f.id
         INNER JOIN peliculas p ON f.pelicula_id = p.id
@@ -57,6 +61,58 @@ def obtener_reservas():
 
     conexion.close()
     return reservas
+
+
+@router.get("/reservas/{codigo_reserva}")
+def obtener_reserva_por_codigo(codigo_reserva: str):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            r.id,
+            r.codigo_reserva,
+            r.nombre_cliente,
+            r.email_cliente,
+            r.telefono_cliente,
+            r.cantidad_asientos,
+            r.total,
+            r.metodo_pago,
+            r.fecha_reserva,
+            f.fecha,
+            CAST(f.hora AS CHAR) AS hora,
+            f.sala,
+            f.precio,
+            p.titulo AS pelicula,
+            p.genero,
+            p.clasificacion,
+            s.nombre AS sucursal,
+            s.direccion AS direccion_sucursal,
+            s.ciudad
+        FROM reservas r
+        INNER JOIN funciones f ON r.funcion_id = f.id
+        INNER JOIN peliculas p ON f.pelicula_id = p.id
+        INNER JOIN sucursales s ON f.sucursal_id = s.id
+        WHERE r.codigo_reserva = %s
+    """, (codigo_reserva,))
+
+    reserva = cursor.fetchone()
+
+    if reserva is None:
+        conexion.close()
+        raise HTTPException(status_code=404, detail="La reserva no existe")
+
+    cursor.execute("""
+        SELECT asiento
+        FROM asientos_reservados
+        WHERE reserva_id = %s
+        ORDER BY asiento
+    """, (reserva["id"],))
+
+    reserva["asientos"] = [fila["asiento"] for fila in cursor.fetchall()]
+
+    conexion.close()
+    return reserva
 
 
 @router.get("/funciones/{funcion_id}/asientos")
