@@ -1,12 +1,34 @@
 from fastapi import FastAPI
-from app.routes import peliculas, funciones, reservas
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+from app.routes import peliculas
+from app.routes import funciones
+from app.routes import reservas
+from app.routes import sucursales
+
+app = FastAPI(
+    title="CineMax API",
+    description="API para la plataforma de reservas de cine CineMax",
+    version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 app.include_router(peliculas.router)
 app.include_router(funciones.router)
 app.include_router(reservas.router)
+app.include_router(sucursales.router)
+
 
 @app.get("/")
 def home():
-    return {"mensaje": "API de cine funcionando"}
+    return {
+        "mensaje": "API de CineMax funcionando correctamente",
+        "estado": "online"
+    }
