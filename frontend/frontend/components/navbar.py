@@ -1,7 +1,13 @@
 import reflex as rx  # type: ignore[import]
-from ..config import APP_NAME, APP_BRAND_MARK, APP_BRAND_SUB
-from ..state import State
-from ..data import LOCATIONS
+
+try:
+    from config import APP_NAME, APP_BRAND_MARK, APP_BRAND_SUB
+    from state import State
+    from data import LOCATIONS
+except ModuleNotFoundError:
+    from ..config import APP_NAME, APP_BRAND_MARK, APP_BRAND_SUB
+    from ..state import State
+    from ..data import LOCATIONS
 
 
 def nav_class(active: str, name: str) -> str:
