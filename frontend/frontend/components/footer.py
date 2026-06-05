@@ -55,7 +55,7 @@ def site_footer() -> rx.Component:
                     rx.text("Información", class_name="footer-heading"),
                     rx.text("Lunes a Domingo", class_name="footer-link"),
                     rx.text("12:00 PM – 11:00 PM", class_name="footer-link"),
-                    rx.text("info@cinelux.do", class_name="footer-link"),
+                    rx.text("info@jccinemas.do", class_name="footer-link"),
                     rx.text("+1 (809) 555-0100", class_name="footer-link"),
                     spacing="2", align="start",
                 ),

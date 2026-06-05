@@ -1,8 +1,9 @@
 import reflex as rx  # type: ignore[import]
+
 from frontend.config import APP_NAME
 from frontend.components.movie_card import movie_card
 from frontend.components.navbar import navbar, search_overlay, side_menu
-from frontend.components.footer import locations_page
+from frontend.components.footer import locations_page, site_footer
 from frontend.components.movie_detail import detail_page
 from frontend.pages.home import index
 from frontend.pages.reserva import booking_page
@@ -15,9 +16,16 @@ def movie_grid(title: str, movies_var, subtitle: str, active: str) -> rx.Compone
         rx.box(
             rx.text(subtitle, class_name="section-kicker"),
             rx.heading(title, class_name="page-title"),
-            rx.grid(rx.foreach(movies_var, movie_card), columns="6", spacing="3", width="100%", class_name="movies-grid"),
+            rx.grid(
+                rx.foreach(movies_var, movie_card),
+                columns="6",
+                spacing="3",
+                width="100%",
+                class_name="movies-grid",
+            ),
             class_name="page-section page-top",
         ),
+        site_footer(),
         search_overlay(),
         side_menu(),
         class_name="page",
@@ -25,17 +33,28 @@ def movie_grid(title: str, movies_var, subtitle: str, active: str) -> rx.Compone
 
 
 def cartelera() -> rx.Component:
-    return movie_grid("Películas en cartelera", State.cartelera_movies, "NOW SHOWING", "cartelera")
+    return movie_grid(
+        "Películas en cartelera",
+        State.cartelera_movies,
+        "NOW SHOWING",
+        "cartelera",
+    )
 
 
 def proximamente() -> rx.Component:
-    return movie_grid("Próximamente", State.pronto_movies, "COMING SOON", "proximamente")
+    return movie_grid(
+        "Próximamente",
+        State.pronto_movies,
+        "COMING SOON",
+        "proximamente",
+    )
 
 
 app = rx.App(stylesheets=["/style.css"])
-app.add_page(index,          route="/",             title=APP_NAME)
-app.add_page(cartelera,      route="/cartelera",    title=f"{APP_NAME} | Cartelera")
-app.add_page(proximamente,   route="/proximamente", title=f"{APP_NAME} | Próximamente")
-app.add_page(locations_page, route="/ubicaciones",  title=f"{APP_NAME} | Ubicaciones")
-app.add_page(detail_page,    route="/pelicula",     title=f"{APP_NAME} | Detalle")
-app.add_page(booking_page,   route="/reservar",     title=f"{APP_NAME} | Reservar")
+
+app.add_page(index, route="/", title=APP_NAME)
+app.add_page(cartelera, route="/cartelera", title=f"{APP_NAME} | Cartelera")
+app.add_page(proximamente, route="/proximamente", title=f"{APP_NAME} | Próximamente")
+app.add_page(locations_page, route="/ubicaciones", title=f"{APP_NAME} | Ubicaciones")
+app.add_page(detail_page, route="/pelicula", title=f"{APP_NAME} | Detalle")
+app.add_page(booking_page, route="/reservar", title=f"{APP_NAME} | Reservar")
