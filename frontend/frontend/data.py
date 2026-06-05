@@ -1,6 +1,5 @@
 ﻿# =============================================================
-# CineMax / CineHub · data.py
-# Datos estáticos del frontend.
+# CineLux · data.py
 # =============================================================
 
 SERVICE_FEE = 45
@@ -57,17 +56,6 @@ DATES = [
 
 SEAT_ROWS = list("ABCDEFGHIJKL")
 
-
-def poster_url(title: str, color: str) -> str:
-    clean = title.replace(" ", "+")
-    return f"https://dummyimage.com/700x1050/{color}/ffffff.png&text={clean}"
-
-
-def backdrop_url(title: str, color: str) -> str:
-    clean = title.replace(" ", "+")
-    return f"https://dummyimage.com/1280x720/{color}/ffffff.png&text={clean}"
-
-
 MOVIES = [
     {
         "id": 1,
@@ -78,14 +66,14 @@ MOVIES = [
         "director": "Simon McQuoid",
         "productor": "Todd Garner, James Wan",
         "reparto": "Karl Urban, Adeline Rudolph, Jessica McNamee, Hiroyuki Sanada",
-        "sinopsis": "Los campeones favoritos de los fans se enfrentan en una batalla definitiva para detener el dominio de Shao Kahn.",
+        "sinopsis": "Los campeones favoritos de los fans se enfrentan en una batalla definitiva para detener el dominio de Shao Kahn sobre Earthrealm.",
         "tab": "cartelera",
         "fecha_estreno": "En cartelera",
         "precio_regular": 500,
         "precio_vip": 850,
         "rating": "7.4",
-        "image": backdrop_url("Mortal Kombat II", "111827"),
-        "poster": poster_url("Mortal Kombat II", "111827"),
+        "image": "https://indy-systems.imgix.net/r5e5qth1g9nif0nnmgmixufkc2jc?auto=format&fit=crop&fm=jpeg&h=720&w=1280",
+        "poster": "https://indy-systems.imgix.net/r5e5qth1g9nif0nnmgmixufkc2jc?auto=format&fit=crop&fm=jpeg&h=1050&w=700",
         "trailer": "b24oG7qCwp4",
         "funciones": {
             "Downtown Center": ["4:20 PM", "6:55 PM", "8:35 PM", "9:30 PM"],
@@ -104,14 +92,14 @@ MOVIES = [
         "director": "Joseph Kosinski",
         "productor": "Jerry Bruckheimer",
         "reparto": "Brad Pitt, Damson Idris, Kerry Condon, Javier Bardem",
-        "sinopsis": "Un expiloto de Fórmula 1 regresa a las pistas para guiar a un joven talento hacia la gloria.",
+        "sinopsis": "Un expiloto de Fórmula 1 regresa a las pistas para guiar a un joven talento hacia la gloria en las carreras más veloces del mundo.",
         "tab": "cartelera",
         "fecha_estreno": "En cartelera",
         "precio_regular": 550,
         "precio_vip": 900,
         "rating": "8.1",
-        "image": backdrop_url("F1 La Película", "0f172a"),
-        "poster": poster_url("F1 La Película", "0f172a"),
+        "image": "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1280&q=80",
+        "poster": "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=700&h=1050&q=80",
         "trailer": "IHWlvwu8t1w",
         "funciones": {
             "Downtown Center": ["2:30 PM", "5:00 PM", "7:30 PM", "10:00 PM"],
@@ -130,14 +118,14 @@ MOVIES = [
         "director": "Gareth Edwards",
         "productor": "Frank Marshall",
         "reparto": "Scarlett Johansson, Jonathan Bailey, Mahershala Ali",
-        "sinopsis": "Una nueva expedición entra en una zona prohibida donde los dinosaurios todavía dominan la Tierra.",
+        "sinopsis": "Una nueva expedición entra en una zona prohibida donde los dinosaurios todavía dominan la Tierra cinco años después del colapso.",
         "tab": "cartelera",
         "fecha_estreno": "En cartelera",
         "precio_regular": 500,
         "precio_vip": 850,
         "rating": "7.3",
-        "image": backdrop_url("Jurassic World", "0b2414"),
-        "poster": poster_url("Jurassic World", "0b2414"),
+        "image": "https://images.unsplash.com/photo-1615789591457-74a63395c990?auto=format&fit=crop&w=1280&q=80",
+        "poster": "https://images.unsplash.com/photo-1615789591457-74a63395c990?auto=format&fit=crop&w=700&h=1050&q=80",
         "trailer": "XJ0uv-phsDk",
         "funciones": {
             "Downtown Center": ["3:15 PM", "6:05 PM", "9:00 PM"],
@@ -156,14 +144,14 @@ MOVIES = [
         "director": "Len Wiseman",
         "productor": "Basil Iwanyk",
         "reparto": "Ana de Armas, Keanu Reeves, Ian McShane",
-        "sinopsis": "Una asesina entrenada busca venganza dentro del oscuro universo de los asesinos profesionales.",
+        "sinopsis": "Una asesina entrenada busca venganza dentro del oscuro universo de los asesinos profesionales de John Wick.",
         "tab": "cartelera",
         "fecha_estreno": "En cartelera",
         "precio_regular": 500,
         "precio_vip": 850,
         "rating": "7.0",
-        "image": backdrop_url("Ballerina", "1f1117"),
-        "poster": poster_url("Ballerina", "1f1117"),
+        "image": "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?auto=format&fit=crop&w=1280&q=80",
+        "poster": "https://images.unsplash.com/photo-1518834107812-67b0b7c58434?auto=format&fit=crop&w=700&h=1050&q=80",
         "trailer": "dQw4w9WgXcQ",
         "funciones": {
             "Downtown Center": ["4:50 PM", "7:10 PM", "9:30 PM"],
@@ -182,14 +170,14 @@ MOVIES = [
         "director": "Frank Perozo",
         "productor": "Caribbean Films",
         "reparto": "Raymond Pozo, Miguel Céspedes, Hony Estrella",
-        "sinopsis": "Una comedia dominicana llena de enredos, secretos familiares y situaciones inesperadas.",
+        "sinopsis": "Una comedia dominicana llena de enredos, secretos familiares y situaciones inesperadas en un hotel de lujo.",
         "tab": "cartelera",
         "fecha_estreno": "En cartelera",
         "precio_regular": 450,
         "precio_vip": 800,
         "rating": "7.3",
-        "image": backdrop_url("De tal palo tal astilla", "3b0a0a"),
-        "poster": poster_url("De tal palo tal astilla", "3b0a0a"),
+        "image": "https://indy-systems.imgix.net/tq2rmjo090yq9nmoj8f4yvbvj9me?auto=format&fit=crop&fm=jpeg&h=720&w=1280",
+        "poster": "https://indy-systems.imgix.net/tq2rmjo090yq9nmoj8f4yvbvj9me?auto=format&fit=crop&fm=jpeg&h=1050&w=700",
         "trailer": "JHif2sq226E",
         "funciones": {
             "Downtown Center": ["5:25 PM", "7:35 PM", "9:35 PM"],
@@ -214,8 +202,8 @@ MOVIES = [
         "precio_regular": 550,
         "precio_vip": 900,
         "rating": "8.1",
-        "image": backdrop_url("Mandalorian Grogu", "0a0a1a"),
-        "poster": poster_url("Mandalorian Grogu", "0a0a1a"),
+        "image": "https://indy-systems.imgix.net/ynkoxyun8l0g4zsvobovmmhbkhsy?auto=format&fit=crop&fm=jpeg&h=720&w=1280",
+        "poster": "https://indy-systems.imgix.net/ynkoxyun8l0g4zsvobovmmhbkhsy?auto=format&fit=crop&fm=jpeg&h=1050&w=700",
         "trailer": "IHWlvwu8t1w",
         "funciones": {
             "Downtown Center": ["3:30 PM", "6:25 PM", "9:20 PM"],
@@ -227,6 +215,59 @@ MOVIES = [
     },
     {
         "id": 7,
+        "titulo": "Hoppers",
+        "genero": "Animación / Familiar",
+        "clasificacion": "S/R",
+        "duracion": "1h 45m",
+        "director": "Daniel Chong",
+        "productor": "Pixar Animation Studios",
+        "reparto": "Piper Curda, Bobby Moynihan, Jon Hamm",
+        "sinopsis": "Mabel aprovecha una tecnología que permite transferir la conciencia humana a animales robóticos para descubrir misterios del mundo animal.",
+        "tab": "cartelera",
+        "fecha_estreno": "En cartelera",
+        "precio_regular": 450,
+        "precio_vip": 800,
+        "rating": "6.9",
+        "image": "https://indy-systems.imgix.net/30vf44btt3ora5lcbmakqndq4cct?auto=format&fit=crop&fm=jpeg&h=720&w=1280",
+        "poster": "https://indy-systems.imgix.net/30vf44btt3ora5lcbmakqndq4cct?auto=format&fit=crop&fm=jpeg&h=1050&w=700",
+        "trailer": "PypDSyIRRSs",
+        "funciones": {
+            "Downtown Center": ["3:55 PM", "6:20 PM"],
+            "Galería 360": ["2:15 PM", "5:05 PM", "7:20 PM"],
+            "Ágora Mall": ["1:30 PM", "4:15 PM", "6:45 PM"],
+            "Blue Mall": ["3:00 PM", "5:30 PM"],
+            "Sambil": ["2:40 PM", "5:10 PM", "7:30 PM"],
+        },
+    },
+    {
+        "id": 8,
+        "titulo": "Fuze",
+        "genero": "Drama / Thriller",
+        "clasificacion": "R/14",
+        "duracion": "1h 38m",
+        "director": "David Mackenzie",
+        "productor": "Anton, Sigma Films",
+        "reparto": "Aaron Taylor-Johnson, Theo James, Gugu Mbatha-Raw",
+        "sinopsis": "Una bomba sin explotar de la Segunda Guerra Mundial aparece en una obra en Londres, desatando una evacuación masiva.",
+        "tab": "cartelera",
+        "fecha_estreno": "En cartelera",
+        "precio_regular": 500,
+        "precio_vip": 850,
+        "rating": "7.8",
+        "image": "https://indy-systems.imgix.net/1cpvffjm9yy6ovaq0j6nat7ycm91?auto=format&fit=crop&fm=jpeg&h=720&w=1280",
+        "poster": "https://indy-systems.imgix.net/1cpvffjm9yy6ovaq0j6nat7ycm91?auto=format&fit=crop&fm=jpeg&h=1050&w=700",
+        "trailer": "b-_42xDX43w",
+        "funciones": {
+            "Downtown Center": ["4:50 PM", "7:10 PM", "9:30 PM"],
+            "Galería 360": ["6:00 PM", "8:30 PM"],
+            "Ágora Mall": ["5:40 PM", "8:45 PM"],
+            "Blue Mall": ["7:20 PM", "9:40 PM"],
+            "Sambil": ["5:30 PM", "8:25 PM"],
+        },
+    },
+    # ── Próximamente ───────────────────────────────────────────
+    {
+        "id": 9,
         "titulo": "Superman",
         "genero": "Acción / Superhéroes",
         "clasificacion": "PG-13",
@@ -234,19 +275,19 @@ MOVIES = [
         "director": "James Gunn",
         "productor": "Peter Safran",
         "reparto": "David Corenswet, Rachel Brosnahan, Nicholas Hoult",
-        "sinopsis": "Clark Kent intenta equilibrar su herencia kryptoniana con su vida humana mientras nace un nuevo símbolo de esperanza.",
+        "sinopsis": "Clark Kent intenta equilibrar su herencia kryptoniana con su vida humana mientras nace un nuevo símbolo de esperanza para la humanidad.",
         "tab": "proximamente",
-        "fecha_estreno": "Próximamente",
+        "fecha_estreno": "25 junio 2026",
         "precio_regular": 550,
         "precio_vip": 900,
         "rating": "7.8",
-        "image": backdrop_url("Superman", "0a1933"),
-        "poster": poster_url("Superman", "0a1933"),
+        "image": "https://images.unsplash.com/photo-1535016120720-40c646be5580?auto=format&fit=crop&w=1280&q=80",
+        "poster": "https://images.unsplash.com/photo-1535016120720-40c646be5580?auto=format&fit=crop&w=700&h=1050&q=80",
         "trailer": "8ugaeA-nMTc",
         "funciones": {},
     },
     {
-        "id": 8,
+        "id": 10,
         "titulo": "Toy Story 5",
         "genero": "Animación / Familiar",
         "clasificacion": "G",
@@ -254,15 +295,75 @@ MOVIES = [
         "director": "Andrew Stanton",
         "productor": "Pixar Animation Studios",
         "reparto": "Tom Hanks, Tim Allen, Joan Cusack",
-        "sinopsis": "Los juguetes enfrentan una nueva etapa donde la tecnología cambia el tiempo de juego.",
+        "sinopsis": "Los juguetes enfrentan una nueva etapa donde la tecnología cambia el tiempo de juego para siempre.",
         "tab": "proximamente",
-        "fecha_estreno": "Próximamente",
+        "fecha_estreno": "18 junio 2026",
         "precio_regular": 500,
         "precio_vip": 850,
         "rating": "7.9",
-        "image": backdrop_url("Toy Story 5", "0f3d91"),
-        "poster": poster_url("Toy Story 5", "0f3d91"),
+        "image": "https://indy-systems.imgix.net/wgj12qskqmyg2uxzc7nx35o6dcjg?auto=format&fit=crop&fm=jpeg&h=720&w=1280",
+        "poster": "https://indy-systems.imgix.net/wgj12qskqmyg2uxzc7nx35o6dcjg?auto=format&fit=crop&fm=jpeg&h=1050&w=700",
         "trailer": "wmiIUN-7qhE",
+        "funciones": {},
+    },
+    {
+        "id": 11,
+        "titulo": "Dune: Part Three",
+        "genero": "Ciencia ficción / Épica",
+        "clasificacion": "PG-13",
+        "duracion": "2h 45m",
+        "director": "Denis Villeneuve",
+        "productor": "Mary Parent, Cale Boyter",
+        "reparto": "Timothée Chalamet, Zendaya, Florence Pugh, Robert Pattinson",
+        "sinopsis": "Paul Atreides enfrenta las consecuencias de su ascenso al poder mientras una guerra sagrada amenaza el futuro de Arrakis.",
+        "tab": "proximamente",
+        "fecha_estreno": "17 diciembre 2026",
+        "precio_regular": 550,
+        "precio_vip": 900,
+        "rating": "8.4",
+        "image": "https://indy-systems.imgix.net/uv4oh117gv3q6v0mtm6ryw7e9erq?auto=format&fit=crop&fm=jpeg&h=720&w=1280",
+        "poster": "https://indy-systems.imgix.net/uv4oh117gv3q6v0mtm6ryw7e9erq?auto=format&fit=crop&fm=jpeg&h=1050&w=700",
+        "trailer": "n9xhJrPXop4",
+        "funciones": {},
+    },
+    {
+        "id": 12,
+        "titulo": "Spider-Man: Brand New Day",
+        "genero": "Acción / Aventura",
+        "clasificacion": "PG-13",
+        "duracion": "2h 20m",
+        "director": "Destin Daniel Cretton",
+        "productor": "Kevin Feige, Amy Pascal",
+        "reparto": "Tom Holland, Zendaya, Sadie Sink, Jacob Batalon",
+        "sinopsis": "Peter Parker empieza una nueva vida en Nueva York mientras una amenaza inesperada cambia su destino como Spider-Man.",
+        "tab": "proximamente",
+        "fecha_estreno": "30 julio 2026",
+        "precio_regular": 550,
+        "precio_vip": 900,
+        "rating": "8.0",
+        "image": "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&w=1280&q=80",
+        "poster": "https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?auto=format&fit=crop&w=700&h=1050&q=80",
+        "trailer": "JfVOs4VSpmA",
+        "funciones": {},
+    },
+    {
+        "id": 13,
+        "titulo": "Masters of the Universe",
+        "genero": "Ciencia ficción / Aventura",
+        "clasificacion": "PG-13",
+        "duracion": "2h 20m",
+        "director": "Travis Knight",
+        "productor": "Robbie Brenner, Todd Black",
+        "reparto": "Nicholas Galitzine, Camila Mendes, Alison Brie, Jared Leto",
+        "sinopsis": "Prince Adam regresa a Eternia para enfrentar a Skeletor y asumir su destino como He-Man.",
+        "tab": "proximamente",
+        "fecha_estreno": "4 junio 2026",
+        "precio_regular": 550,
+        "precio_vip": 900,
+        "rating": "7.6",
+        "image": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=1280&q=80",
+        "poster": "https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=700&h=1050&q=80",
+        "trailer": "KQidFLWXD2Y",
         "funciones": {},
     },
 ]
@@ -275,7 +376,7 @@ FOOD_MENU = [
         "nombre": "Combo Grande",
         "descripcion": "Palomitas grandes + refresco 44oz",
         "precio": 380,
-        "image": "https://dummyimage.com/500x350/7f1d1d/ffffff.png&text=Combo+Grande",
+        "image": "https://images.unsplash.com/photo-1585647347483-22b66260dfff?auto=format&fit=crop&w=500&q=80",
         "qty": 0,
     },
     {
@@ -283,7 +384,7 @@ FOOD_MENU = [
         "nombre": "Nachos Premium",
         "descripcion": "Nachos con queso y jalapeños",
         "precio": 280,
-        "image": "https://dummyimage.com/500x350/92400e/ffffff.png&text=Nachos",
+        "image": "https://images.unsplash.com/photo-1619881590738-a111d176d906?auto=format&fit=crop&w=500&q=80",
         "qty": 0,
     },
     {
@@ -291,7 +392,7 @@ FOOD_MENU = [
         "nombre": "Hot Dog Cine",
         "descripcion": "Hot dog grande estilo cine",
         "precio": 220,
-        "image": "https://dummyimage.com/500x350/7c2d12/ffffff.png&text=Hot+Dog",
+        "image": "https://images.unsplash.com/photo-1613482084286-41f25b486fa2?auto=format&fit=crop&w=500&q=80",
         "qty": 0,
     },
     {
@@ -299,7 +400,15 @@ FOOD_MENU = [
         "nombre": "Refresco Grande",
         "descripcion": "Bebida fría 44oz",
         "precio": 150,
-        "image": "https://dummyimage.com/500x350/1d4ed8/ffffff.png&text=Refresco",
+        "image": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=500&q=80",
+        "qty": 0,
+    },
+    {
+        "id": "f5",
+        "nombre": "Mini Electric Shaver",
+        "descripcion": "Afeitadora eléctrica portátil — ideal para el camino",
+        "precio": 1200,
+        "image": "https://images.unsplash.com/photo-1621607512022-6aecc4fed814?auto=format&fit=crop&w=500&q=80",
         "qty": 0,
     },
 ]
@@ -308,21 +417,16 @@ FOOD_MENU = [
 def make_seats() -> list[dict]:
     reserved = {"B5", "B6", "C3", "D10", "D11", "F7", "F8", "H4", "H5", "J12", "K9"}
     seats = []
-
     for row in SEAT_ROWS:
         for col in range(1, 15):
             seat_id = f"{row}{col}"
-
-            seats.append(
-                {
-                    "id": seat_id,
-                    "row": row,
-                    "col": col,
-                    "tipo": "vip" if row in "KL" else "regular",
-                    "estado": "reservado" if seat_id in reserved else "disponible",
-                }
-            )
-
+            seats.append({
+                "id": seat_id,
+                "row": row,
+                "col": col,
+                "tipo": "vip" if row in "KL" else "regular",
+                "estado": "reservado" if seat_id in reserved else "disponible",
+            })
     return seats
 
 

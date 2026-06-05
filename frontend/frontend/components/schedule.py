@@ -1,31 +1,21 @@
 import reflex as rx  # type: ignore[import]
-from ..state import State
-from ..data import LOCATIONS, DATES
+
+try:
+    from state import State
+    from data import LOCATIONS, DATES
+except ModuleNotFoundError:
+    from ..state import State
+    from ..data import LOCATIONS, DATES
 
 
 def loc_button(loc: str) -> rx.Component:
-    return rx.button(
-        loc,
-        class_name=rx.cond(State.selected_location == loc, "pill pill-active", "pill"),
-        on_click=lambda: State.set_location(loc),
-    )
-
+    return rx.button(loc, class_name=rx.cond(State.selected_location == loc, "pill pill-active", "pill"), on_click=lambda: State.set_location(loc))
 
 def date_button(date: str) -> rx.Component:
-    return rx.button(
-        date,
-        class_name=rx.cond(State.selected_date == date, "pill pill-active", "pill"),
-        on_click=lambda: State.set_date(date),
-    )
-
+    return rx.button(date, class_name=rx.cond(State.selected_date == date, "pill pill-active", "pill"), on_click=lambda: State.set_date(date))
 
 def showtime_button(t: str) -> rx.Component:
-    return rx.button(
-        t,
-        class_name=rx.cond(State.selected_showtime == t, "showtime showtime-active", "showtime"),
-        on_click=lambda: State.set_showtime(t),
-    )
-
+    return rx.button(t, class_name=rx.cond(State.selected_showtime == t, "showtime showtime-active", "showtime"), on_click=lambda: State.set_showtime(t))
 
 def showtimes_section() -> rx.Component:
     return rx.box(

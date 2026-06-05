@@ -1,22 +1,26 @@
 import reflex as rx  # type: ignore[import]
-from ..state import State
-from ..components.hero import hero_section
-from ..components.movie_card import movie_card
-from ..components.navbar import search_overlay, side_menu
 
-GFONTS = (
-    "https://fonts.googleapis.com/css2?"
-    "family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
-)
+try:
+    from state import State
+    from components.hero import hero_section
+    from components.movie_card import movie_card
+    from components.navbar import search_overlay, side_menu
+    from components.footer import site_footer
+except ModuleNotFoundError:
+    from ..state import State
+    from ..components.hero import hero_section
+    from ..components.movie_card import movie_card
+    from ..components.navbar import search_overlay, side_menu
+    from ..components.footer import site_footer
+
+GFONTS = "https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
 
 
 def page_style() -> rx.Component:
-    return rx.el.style(f"""
-        @import url('{GFONTS}');
-        html {{ scroll-behavior: smooth; }}
-        body {{ margin: 0; background: #040407; }}
-        * {{ box-sizing: border-box; }}
-    """)
+    return rx.el.style(
+        f"@import url('{GFONTS}'); html {{ scroll-behavior: smooth; }} "
+        "body { margin: 0; background: #040407; } * { box-sizing: border-box; }"
+    )
 
 
 def home_sections() -> rx.Component:
@@ -57,6 +61,7 @@ def index() -> rx.Component:
         page_style(),
         hero_section(),
         home_sections(),
+        site_footer(),
         search_overlay(),
         side_menu(),
         class_name="page",

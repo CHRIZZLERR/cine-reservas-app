@@ -1,5 +1,5 @@
 /* =============================================================
-   CineMax · style.css — Basado en frontend actual (ChatGPT V5)
+   CinePrime · style.css — Basado en frontend actual (ChatGPT V5)
    Paleta: #040407 bg · #9b0018 rojo · #FFD60A gold · #6BAEFF blue
    Fonts: Bebas Neue (títulos) + Outfit (body)
    ============================================================= */
@@ -72,16 +72,23 @@ a     { text-decoration: none; color: inherit; }
 
 /* Logo mark */
 .brand-mark {
-  width: 44px; height: 44px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--red3), var(--red));
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 30% 25%, rgba(255, 255, 255, .25), transparent 28%),
+    linear-gradient(135deg, #d20b2f 0%, #9b0018 52%, #38000a 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-family: var(--font-title);
-  font-size: 26px;
+  font-size: 22px;
+  letter-spacing: 1px;
   color: #fff;
-  box-shadow: 0 0 28px rgba(155,0,24,.45);
+  border: 1px solid rgba(255, 255, 255, .16);
+  box-shadow:
+    0 0 30px rgba(155, 0, 24, .48),
+    inset 0 1px 0 rgba(255, 255, 255, .20);
   flex-shrink: 0;
 }
 
@@ -375,6 +382,7 @@ a     { text-decoration: none; color: inherit; }
   text-shadow: 0 6px 28px rgba(0,0,0,.9);
   display: -webkit-box;
   -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -646,21 +654,33 @@ a     { text-decoration: none; color: inherit; }
 
 /* Poster wrapper — vertical aspect ratio */
 .movie-img-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 2/3;          /* poster vertical */
-  overflow: hidden;
-  background: #070a11;
-  flex-shrink: 0;
+  position: relative !important;
+  width: 100% !important;
+  aspect-ratio: 2/3 !important;
+  overflow: hidden !important;
+  background: #070a11 !important;
+  flex-shrink: 0 !important;
 }
-.movie-img {
+
+.movie-img-wrap img {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
   width: 100% !important;
   height: 100% !important;
   object-fit: cover !important;
   object-position: center top !important;
-  transition: transform .35s;
+  transition: transform .35s !important;
+  display: block !important;
 }
-.movie-card:hover .movie-img { transform: scale(1.06); }
+
+.movie-card:hover .movie-img-wrap img {
+  transform: scale(1.06) !important;
+}
+
+.movie-img {
+  display: none !important;
+}
 
 .movie-img-gradient {
   position: absolute;
@@ -702,6 +722,7 @@ a     { text-decoration: none; color: inherit; }
   min-height: 34px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -1061,22 +1082,25 @@ a     { text-decoration: none; color: inherit; }
   flex-shrink: 0;
 }
 
+/* Asiento base */
 .seat {
-  width: 28px !important;
-  height: 23px !important;
-  padding: 0 !important;
-  border-radius: 7px 7px 3px 3px !important;
-  background: rgba(255,255,255,.07) !important;
-  border: 1px solid rgba(255,255,255,.13) !important;
-  color: #D9E2EF !important;
-  font-size: 9px !important;
+  width: 30px !important;
+  height: 26px !important;
+  border-radius: 6px 6px 2px 2px !important;
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(217,226,239,.7) !important;
+  font-size: 7px !important;
   font-weight: 900 !important;
   cursor: pointer !important;
-  transition: .18s !important;
+  position: relative !important;
+  transition: .15s !important;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.3) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   flex-shrink: 0;
+  line-height: 1 !important;
 }
 .seat:hover {
   border-color: var(--blue) !important;
@@ -1323,6 +1347,342 @@ a     { text-decoration: none; color: inherit; }
   .food-card > div:last-child { grid-column: 1 / -1; justify-content: flex-end; }
   .form-grid [class*="rx-Grid"] { grid-template-columns: 1fr !important; }
   .locations-section [class*="rx-Grid"] { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   SEARCH PANEL — mejorado
+   ══════════════════════════════════════════════════════════════ */
+
+.search-panel {
+  width: min(680px, 92vw) !important;
+  padding: 28px 32px !important;
+}
+
+.search-panel-title {
+  color: #fff;
+  font-weight: 900;
+  font-size: 16px;
+  letter-spacing: .5px;
+}
+
+.search-input-big {
+  width: 100% !important;
+  height: 54px !important;
+  font-size: 16px !important;
+  border-radius: 16px !important;
+  padding: 0 20px !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   SEAT MAP — rediseño visual
+   ══════════════════════════════════════════════════════════════ */
+
+.seat-card {
+  padding: 24px 20px !important;
+  overflow-x: auto !important;
+}
+
+.screen-label {
+  font-size: 11px !important;
+  letter-spacing: 5px !important;
+  color: rgba(201,215,230,.6) !important;
+  margin-bottom: 4px !important;
+}
+
+.screen {
+  width: min(480px, 88%) !important;
+  height: 12px !important;
+  margin: 0 auto 28px !important;
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0 !important;
+  background: linear-gradient(180deg, rgba(201,215,230,.9), rgba(80,96,112,.4)) !important;
+  box-shadow: 0 -4px 32px rgba(201,215,230,.22), 0 0 60px rgba(107,174,255,.12) !important;
+}
+
+.seat-map {
+  min-width: 520px !important;
+  gap: 5px !important;
+}
+
+.seat-row {
+  gap: 3px !important;
+}
+
+.row-label {
+  width: 22px !important;
+  font-size: 11px !important;
+  color: rgba(170,180,198,.5) !important;
+  margin-right: 4px !important;
+}
+
+/* Asiento base — forma de silla de cine */
+.seat {
+  width: 30px !important;
+  height: 26px !important;
+  border-radius: 6px 6px 2px 2px !important;
+  background: rgba(255,255,255,.06) !important;
+  border: 1px solid rgba(255,255,255,.10) !important;
+  color: rgba(217,226,239,.5) !important;
+  font-size: 0px !important;          /* ocultamos el texto del ID */
+  position: relative !important;
+  transition: .15s !important;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.3) !important;
+}
+
+/* respaldo de la silla — pseudo elemento */
+.seat::before {
+  content: "";
+  position: absolute;
+  top: -4px; left: 2px; right: 2px;
+  height: 4px;
+  border-radius: 3px 3px 0 0;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.08);
+  border-bottom: none;
+}
+
+.seat:hover {
+  background: rgba(107,174,255,.22) !important;
+  border-color: var(--blue) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 4px 12px rgba(107,174,255,.2), inset 0 -3px 0 rgba(0,0,0,.3) !important;
+}
+
+.seat-selected {
+  background: linear-gradient(160deg, var(--red3), var(--red)) !important;
+  border-color: var(--red3) !important;
+  color: #fff !important;
+  box-shadow: 0 4px 16px rgba(155,0,24,.45), inset 0 -3px 0 rgba(0,0,0,.3) !important;
+}
+.seat-selected::before {
+  background: rgba(210,11,47,.6) !important;
+  border-color: rgba(210,11,47,.4) !important;
+}
+
+.seat-reserved {
+  background: rgba(40,49,66,.5) !important;
+  border-color: rgba(40,49,66,.6) !important;
+  cursor: not-allowed !important;
+  opacity: .45 !important;
+  box-shadow: none !important;
+}
+.seat-reserved::before {
+  background: rgba(40,49,66,.4) !important;
+  border-color: rgba(40,49,66,.3) !important;
+}
+.seat-reserved:hover {
+  background: rgba(40,49,66,.5) !important;
+  transform: none !important;
+  border-color: rgba(40,49,66,.6) !important;
+  box-shadow: none !important;
+}
+
+.seat-vip {
+  border-color: rgba(255,214,10,.45) !important;
+  background: rgba(255,214,10,.07) !important;
+  box-shadow: inset 0 -3px 0 rgba(0,0,0,.3) !important;
+}
+.seat-vip::before {
+  background: rgba(255,214,10,.14) !important;
+  border-color: rgba(255,214,10,.2) !important;
+}
+.seat-vip:hover {
+  background: rgba(255,214,10,.18) !important;
+  border-color: var(--gold) !important;
+  box-shadow: 0 4px 14px rgba(255,214,10,.22), inset 0 -3px 0 rgba(0,0,0,.3) !important;
+}
+
+.legend {
+  margin-top: 24px !important;
+  padding-top: 16px !important;
+  border-top: 1px solid rgba(255,255,255,.06) !important;
+}
+
+.legend-dot {
+  width: 14px !important;
+  height: 14px !important;
+  border-radius: 3px !important;   /* cuadrado redondeado = forma de asiento */
+}
+
+/* ══════════════════════════════════════════════════════════════
+   INVOICE — mejorado
+   ══════════════════════════════════════════════════════════════ */
+
+.invoice {
+  background:
+    radial-gradient(circle at top right, rgba(155,0,24,.14), transparent 36%),
+    var(--panel) !important;
+}
+
+.invoice-title {
+  font-size: 32px !important;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  padding-bottom: 10px;
+  margin-bottom: 8px !important;
+}
+
+.invoice-movie {
+  font-size: 16px !important;
+  color: var(--gold) !important;
+}
+
+.invoice-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,.04);
+}
+
+.invoice-total-label {
+  font-size: 18px !important;
+  color: #fff !important;
+}
+
+.checkout-btn {
+  margin-top: 8px !important;
+  border-radius: 14px !important;
+  padding: 14px !important;
+  font-size: 15px !important;
+  letter-spacing: .5px !important;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   FOOTER
+   ══════════════════════════════════════════════════════════════ */
+
+.site-footer {
+  background:
+    radial-gradient(circle at bottom left, rgba(155,0,24,.10), transparent 32%),
+    linear-gradient(180deg, transparent, rgba(0,0,0,.4)),
+    #040407;
+  border-top: 1px solid rgba(255,255,255,.06);
+  margin-top: 60px;
+}
+
+.footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 56px 32px;
+}
+
+.footer-brand-mark {
+  width: 48px; height: 48px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--red3), var(--red));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-title);
+  font-size: 18px;
+  color: #fff;
+  box-shadow: 0 0 24px rgba(155,0,24,.38);
+  flex-shrink: 0;
+}
+
+.footer-brand-title {
+  font-family: var(--font-title) !important;
+  font-size: 24px !important;
+  letter-spacing: 3px !important;
+  color: #fff !important;
+  line-height: .9 !important;
+}
+
+.footer-brand-sub {
+  font-size: 9px !important;
+  font-weight: 900 !important;
+  letter-spacing: 3px !important;
+  color: rgba(255,255,255,.45) !important;
+}
+
+.footer-tagline {
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 220px;
+  line-height: 1.5;
+}
+
+.footer-social {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.10);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: .22s;
+}
+.footer-social:hover {
+  background: rgba(155,0,24,.22);
+  border-color: var(--red3);
+}
+
+.footer-heading {
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  margin-bottom: 8px !important;
+}
+
+.footer-link {
+  color: var(--muted) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  transition: color .2s !important;
+  display: block;
+}
+.footer-link:hover { color: #fff !important; }
+
+.footer-copy {
+  color: rgba(255,255,255,.28);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* responsive footer */
+@media (max-width: 900px) {
+  .footer-inner { padding: 40px 24px 24px !important; }
+  .footer-inner [class*="rx-Grid"] { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 560px) {
+  .footer-inner [class*="rx-Grid"] { grid-template-columns: 1fr !important; }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MOVIE IMG — fix para que las imágenes se vean
+   ══════════════════════════════════════════════════════════════ */
+
+.movie-img-wrap img,
+.movie-img-wrap [class*="rx-Image"],
+.movie-img {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+}
+
+.movie-img-wrap {
+  position: relative !important;
+}
+
+/* Placeholder cuando imagen falla */
+.movie-img-wrap::after {
+  content: attr(data-title);
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 900;
+  color: rgba(255,255,255,.3);
+  pointer-events: none;
 }
 
 @media (max-width: 600px) {

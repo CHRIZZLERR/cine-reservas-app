@@ -54,20 +54,34 @@ def search_overlay() -> rx.Component:
         State.show_search,
         rx.box(
             rx.box(
-                rx.hstack(
+                rx.vstack(
+                    rx.hstack(
+                        rx.text("🔍 Buscar película", class_name="search-panel-title"),
+                        rx.spacer(),
+                        rx.button("✕", class_name="close-btn", on_click=State.close_search),
+                        width="100%", align="center",
+                    ),
                     rx.input(
-                        placeholder="Buscar película, género o clasificación...",
+                        placeholder="Escribe el nombre, género o clasificación...",
                         value=State.search_text,
                         on_change=State.set_search_text,
                         class_name="search-input-big",
+                        width="100%",
                     ),
-                    rx.link(rx.button("Ver cartelera", class_name="btn-primary-sm"), href="/cartelera"),
-                    rx.button("✕", class_name="close-btn", on_click=State.close_search),
-                    spacing="3", width="100%",
+                    rx.hstack(
+                        rx.link(
+                            rx.button("Ver resultados en cartelera →", class_name="btn-primary-lg"),
+                            href="/cartelera",
+                        ),
+                        rx.button("Limpiar", class_name="btn-ghost", on_click=State.set_search_text("")),
+                        spacing="3",
+                    ),
+                    spacing="4", width="100%",
                 ),
                 class_name="search-panel",
             ),
             class_name="overlay",
+            on_click=State.close_search,
         ),
         rx.fragment(),
     )
