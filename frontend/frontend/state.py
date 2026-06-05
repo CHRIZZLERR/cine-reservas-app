@@ -1,4 +1,5 @@
 ﻿import reflex as rx  # type: ignore[import]
+from urllib.parse import quote
 
 try:
     from data import MOVIES, HERO_SLIDES, FOOD_MENU, INIT_SEATS, SERVICE_FEE
@@ -9,25 +10,41 @@ except ModuleNotFoundError:
 class State(rx.State):
     hero_index: int = 0
     movie_id: int = 1
+
     search_text: str = ""
     show_search: bool = False
     show_menu: bool = False
     show_trailer: bool = False
+
     selected_location: str = "Downtown Center"
     selected_date: str = "Hoy · Vie 29"
     selected_showtime: str = ""
+
     seats: list[dict] = INIT_SEATS
     selected_seats: list[str] = []
     food_cart: list[dict] = FOOD_MENU
     booking_step: int = 1
+
     customer_name: str = ""
     customer_email: str = ""
     customer_phone: str = ""
     reservation_code: str = ""
 
+    # LOGIN / REGISTRO SIMULADO
+    auth_mode: str = "login"
+    login_email: str = ""
+    login_password: str = ""
+    register_name: str = ""
+    register_email: str = ""
+    register_password: str = ""
+    register_confirm_password: str = ""
+    auth_message: str = ""
+    is_logged_in: bool = False
+    logged_user_name: str = ""
+
     @rx.var
     def hero_movie(self) -> dict:
-        return HERO_SLIDES[self.hero_index]
+        return HERO_SLIDES[self.hero_index] if HERO_SLIDES else MOVIES[0]
 
     @rx.var
     def current_movie(self) -> dict:
@@ -47,18 +64,36 @@ class State(rx.State):
     def cartelera_movies(self) -> list[dict]:
         q = self.search_text.strip().lower()
         movies = [m for m in MOVIES if m["tab"] == "cartelera"]
-        return movies if not q else [
+
+        # Filtrar por localización seleccionada
+        movies = [
             m for m in movies
-            if q in m["titulo"].lower() or q in m["genero"].lower() or q in m["clasificacion"].lower()
+            if self.selected_location in m.get("funciones", {})
+        ]
+
+        if not q:
+            return movies
+
+        return [
+            m for m in movies
+            if q in m["titulo"].lower()
+            or q in m["genero"].lower()
+            or q in m["clasificacion"].lower()
         ]
 
     @rx.var
     def pronto_movies(self) -> list[dict]:
         q = self.search_text.strip().lower()
         movies = [m for m in MOVIES if m["tab"] == "proximamente"]
-        return movies if not q else [
+
+        if not q:
+            return movies
+
+        return [
             m for m in movies
-            if q in m["titulo"].lower() or q in m["genero"].lower() or q in m["clasificacion"].lower()
+            if q in m["titulo"].lower()
+            or q in m["genero"].lower()
+            or q in m["clasificacion"].lower()
         ]
 
     @rx.var
@@ -96,38 +131,101 @@ class State(rx.State):
         return self.total_boletos + self.total_comida + self.cargo_servicio
 
     @rx.var
+    def reservation_qr_data(self) -> str:
+        return (
+            f"Reserva: {self.reservation_code}\n"
+            f"Cliente: {self.customer_name}\n"
+            f"Correo: {self.customer_email}\n"
+            f"Pelicula: {self.current_movie['titulo']}\n"
+            f"Cine: {self.selected_location}\n"
+            f"Fecha: {self.selected_date}\n"
+            f"Hora: {self.selected_showtime}\n"
+            f"Asientos: {self.selected_seats_text}\n"
+            f"Total: RD${self.gran_total}"
+        )
+
+    @rx.var
+    def reservation_qr_url(self) -> str:
+        data = quote(self.reservation_qr_data)
+        return f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={data}"
+
+    @rx.var
+    def reservation_email_link(self) -> str:
+        subject = quote(f"Reserva {self.reservation_code} - JC Cinemas")
+        body = quote(
+            f"Hola {self.customer_name},\n\n"
+            f"Tu reserva fue creada correctamente.\n\n"
+            f"Código: {self.reservation_code}\n"
+            f"Película: {self.current_movie['titulo']}\n"
+            f"Cine: {self.selected_location}\n"
+            f"Fecha: {self.selected_date}\n"
+            f"Hora: {self.selected_showtime}\n"
+            f"Asientos: {self.selected_seats_text}\n"
+            f"Total: RD${self.gran_total}\n\n"
+            f"QR de la reserva:\n{self.reservation_qr_url}\n\n"
+            f"Presenta este código o QR en taquilla."
+        )
+        return f"mailto:{self.customer_email}?subject={subject}&body={body}"
+
+    @rx.var
     def row_A(self) -> list[dict]: return self.seats[0:14]
+
     @rx.var
     def row_B(self) -> list[dict]: return self.seats[14:28]
+
     @rx.var
     def row_C(self) -> list[dict]: return self.seats[28:42]
+
     @rx.var
     def row_D(self) -> list[dict]: return self.seats[42:56]
+
     @rx.var
     def row_E(self) -> list[dict]: return self.seats[56:70]
+
     @rx.var
     def row_F(self) -> list[dict]: return self.seats[70:84]
+
     @rx.var
     def row_G(self) -> list[dict]: return self.seats[84:98]
+
     @rx.var
     def row_H(self) -> list[dict]: return self.seats[98:112]
+
     @rx.var
     def row_I(self) -> list[dict]: return self.seats[112:126]
+
     @rx.var
     def row_J(self) -> list[dict]: return self.seats[126:140]
+
     @rx.var
     def row_K(self) -> list[dict]: return self.seats[140:154]
+
     @rx.var
     def row_L(self) -> list[dict]: return self.seats[154:168]
 
-    def next_hero(self): self.hero_index = (self.hero_index + 1) % len(HERO_SLIDES)
-    def prev_hero(self): self.hero_index = (self.hero_index - 1) % len(HERO_SLIDES)
-    def go_to_slide(self, idx: int): self.hero_index = idx
-    def set_search_text(self, value: str): self.search_text = value
-    def toggle_search(self): self.show_search = not self.show_search
-    def close_search(self): self.show_search = False
-    def toggle_menu(self): self.show_menu = not self.show_menu
-    def close_menu(self): self.show_menu = False
+    def next_hero(self):
+        self.hero_index = (self.hero_index + 1) % len(HERO_SLIDES)
+
+    def prev_hero(self):
+        self.hero_index = (self.hero_index - 1) % len(HERO_SLIDES)
+
+    def go_to_slide(self, idx: int):
+        self.hero_index = idx
+
+    def set_search_text(self, value: str):
+        self.search_text = value
+
+    def toggle_search(self):
+        self.show_search = not self.show_search
+
+    def close_search(self):
+        self.show_search = False
+
+    def toggle_menu(self):
+        self.show_menu = not self.show_menu
+
+    def close_menu(self):
+        self.show_menu = False
 
     def go_to_movie(self, movie_id: int):
         self.movie_id = movie_id
@@ -146,19 +244,26 @@ class State(rx.State):
         self.show_trailer = True
         return rx.redirect("/pelicula")
 
-    def open_trailer(self): self.show_trailer = True
-    def close_trailer(self): self.show_trailer = False
+    def open_trailer(self):
+        self.show_trailer = True
+
+    def close_trailer(self):
+        self.show_trailer = False
 
     def set_location(self, location: str):
         self.selected_location = location
         self.selected_showtime = ""
 
-    def set_date(self, date: str): self.selected_date = date
-    def set_showtime(self, time: str): self.selected_showtime = time
+    def set_date(self, date: str):
+        self.selected_date = date
+
+    def set_showtime(self, time: str):
+        self.selected_showtime = time
 
     def start_booking(self):
         if not self.selected_showtime:
             return
+
         self.booking_step = 1
         self.selected_seats = []
         self.food_cart = [dict(item) for item in FOOD_MENU]
@@ -169,6 +274,7 @@ class State(rx.State):
         for seat in self.seats:
             if seat["id"] == seat_id and seat["estado"] == "reservado":
                 return
+
         if seat_id in self.selected_seats:
             self.selected_seats = [s for s in self.selected_seats if s != seat_id]
         elif len(self.selected_seats) < 8:
@@ -177,6 +283,11 @@ class State(rx.State):
     def next_step(self):
         if self.booking_step == 1 and not self.selected_seats:
             return
+
+        if self.booking_step == 3:
+            if not self.customer_name or not self.customer_email or not self.customer_phone:
+                return
+
         if self.booking_step < 4:
             self.booking_step += 1
 
@@ -196,11 +307,78 @@ class State(rx.State):
             for item in self.food_cart
         ]
 
-    def set_customer_name(self, v: str): self.customer_name = v
-    def set_customer_email(self, v: str): self.customer_email = v
-    def set_customer_phone(self, v: str): self.customer_phone = v
+    def set_customer_name(self, v: str):
+        self.customer_name = v
+
+    def set_customer_email(self, v: str):
+        self.customer_email = v
+
+    def set_customer_phone(self, v: str):
+        self.customer_phone = v
 
     def confirm_reservation(self):
         import random
-        self.reservation_code = f"CNH-{random.randint(10000, 99999)}"
+
+        if not self.customer_name or not self.customer_email or not self.customer_phone:
+            return
+
+        self.reservation_code = f"JCC-{random.randint(10000, 99999)}"
         self.booking_step = 4
+
+    # AUTH
+    def show_login(self):
+        self.auth_mode = "login"
+        self.auth_message = ""
+
+    def show_register(self):
+        self.auth_mode = "register"
+        self.auth_message = ""
+
+    def set_login_email(self, v: str):
+        self.login_email = v
+
+    def set_login_password(self, v: str):
+        self.login_password = v
+
+    def set_register_name(self, v: str):
+        self.register_name = v
+
+    def set_register_email(self, v: str):
+        self.register_email = v
+
+    def set_register_password(self, v: str):
+        self.register_password = v
+
+    def set_register_confirm_password(self, v: str):
+        self.register_confirm_password = v
+
+    def login(self):
+        if not self.login_email or not self.login_password:
+            self.auth_message = "Completa tu correo y contraseña."
+            return
+
+        self.is_logged_in = True
+        self.logged_user_name = self.login_email.split("@")[0]
+        self.auth_message = "Sesión iniciada correctamente."
+        return rx.redirect("/")
+
+    def register(self):
+        if not self.register_name or not self.register_email or not self.register_password:
+            self.auth_message = "Completa todos los campos."
+            return
+
+        if self.register_password != self.register_confirm_password:
+            self.auth_message = "Las contraseñas no coinciden."
+            return
+
+        self.is_logged_in = True
+        self.logged_user_name = self.register_name
+        self.auth_message = "Cuenta creada correctamente."
+        return rx.redirect("/")
+
+    def logout(self):
+        self.is_logged_in = False
+        self.logged_user_name = ""
+        self.login_email = ""
+        self.login_password = ""
+        return rx.redirect("/")
