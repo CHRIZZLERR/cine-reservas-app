@@ -78,6 +78,39 @@ class State(rx.State):
         )
 
     @rx.var
+    def ticket_count(self) -> int:
+        return len(self.selected_seats)
+
+    @rx.var
+    def selected_food_items(self) -> list[dict]:
+        return [item for item in self.food_cart if item.get("qty", 0) > 0]
+
+    @rx.var
+    def selected_food_text(self) -> str:
+        items = [f"{item['nombre']} x{item.get('qty', 0)}" for item in self.food_cart if item.get("qty", 0) > 0]
+        return ", ".join(items) if items else "Sin productos"
+
+    @rx.var
+    def current_step_name(self) -> str:
+        if self.booking_step == 1:
+            return "Selecciona tus asientos"
+        if self.booking_step == 2:
+            return "Agrega comida y bebidas"
+        if self.booking_step == 3:
+            return "Completa tus datos"
+        return "Reserva confirmada"
+
+    @rx.var
+    def next_button_text(self) -> str:
+        if self.booking_step == 1:
+            return "Continuar a dulcería"
+        if self.booking_step == 2:
+            return "Continuar a datos"
+        if self.booking_step == 3:
+            return "Confirmar reserva"
+        return "Reserva creada"
+
+    @rx.var
     def cartelera_movies(self) -> list[dict]:
         q = self.search_text.strip().lower()
         movies = [m for m in MOVIES if m["tab"] == "cartelera"]
@@ -136,6 +169,17 @@ class State(rx.State):
         return total
 
     @rx.var
+    def selected_food_items(self) -> list[dict]:
+        return [
+            {
+                **item,
+                "subtotal": item["precio"] * item.get("qty", 0),
+            }
+            for item in self.food_cart
+            if item.get("qty", 0) > 0
+        ]
+
+    @rx.var
     def total_comida(self) -> int:
         return sum(item["precio"] * item.get("qty", 0) for item in self.food_cart)
 
@@ -165,6 +209,7 @@ class State(rx.State):
     def reservation_qr_url(self) -> str:
         data = quote(self.reservation_qr_data)
         return f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={data}"
+
 
     @rx.var
     def reservation_email_link(self) -> str:
@@ -371,10 +416,6 @@ class State(rx.State):
         if self.booking_step == 1 and not self.selected_seats:
             return
 
-        if self.booking_step == 3:
-            if not self.customer_name or not self.customer_email or not self.customer_phone:
-                return
-
         if self.booking_step < 4:
             self.booking_step += 1
 
@@ -406,12 +447,28 @@ class State(rx.State):
     def confirm_reservation(self):
         import random
 
-        if not self.customer_name or not self.customer_email or not self.customer_phone:
+        if self.is_logged_in:
+            self.customer_name = self.logged_user_name
+            self.customer_email = self.logged_user_email
+        else:
+            if not self.customer_name or not self.customer_email:
+                return
+
+        if not self.customer_phone:
             return
 
         self.reservation_code = f"JCC-{random.randint(10000, 99999)}"
         self.booking_step = 4
 
+    def new_booking(self):
+            self.booking_step = 1
+            self.selected_seats = []
+            self.food_cart = [dict(item) for item in FOOD_MENU]
+            self.seats = [dict(s) for s in INIT_SEATS]
+            self.customer_phone = ""
+            self.reservation_code = ""
+            return rx.redirect("/pelicula")
+    
     # AUTH
     def show_login(self):
         self.auth_mode = "login"
