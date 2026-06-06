@@ -11,7 +11,7 @@ class State(rx.State):
     hero_index: int = 0
     movie_id: int = 1
 
-    is_logged_in: bool = False
+    is_logged_in: bool = True
     logged_user_name: str = ""
     logged_user_email: str = ""
 
@@ -267,7 +267,7 @@ class State(rx.State):
 
     @rx.var
     def display_user_name(self) -> str:
-        return self.logged_user_name if self.is_logged_in else "Iniciar sesión"
+        return self.logged_user_name if self.logged_user_name else "Cliente"
 
 
     @rx.var
@@ -509,6 +509,18 @@ class State(rx.State):
         self.customer_email = self.logged_user_email
 
         self.auth_message = "Sesión iniciada correctamente."
+        return rx.redirect("/")
+
+
+    def logout(self):
+        self.is_logged_in = False
+        self.logged_user_name = ""
+        self.logged_user_email = ""
+        self.login_email = ""
+        self.login_password = ""
+        self.customer_name = ""
+        self.customer_email = ""
+        self.auth_message = ""
         return rx.redirect("/")
 
     def register_user(self):

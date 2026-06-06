@@ -2415,6 +2415,46 @@ a     { text-decoration: none; color: inherit; }
   }
 }
 
+/* Usuario logueado en navbar */
+.nav-user-box {
+  padding: 9px 16px !important;
+  border-radius: 999px !important;
+  background: rgba(155, 0, 24, .16) !important;
+  border: 1px solid rgba(210, 11, 47, .35) !important;
+}
+
+.nav-user-muted {
+  color: rgba(255,255,255,.55);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.nav-user-name {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  max-width: 130px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-logout {
+  padding: 7px 12px !important;
+  border-radius: 999px !important;
+  background: rgba(255,255,255,.07) !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  color: #fff !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+}
+
+.nav-logout:hover {
+  background: rgba(155,0,24,.28) !important;
+  border-color: var(--red3) !important;
+}
+
 @media (max-width: 600px) {
   .navbar     { padding: 0 14px; }
   .brand-title{ font-size: 22px !important; }

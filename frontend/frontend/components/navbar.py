@@ -37,16 +37,31 @@ def navbar(active: str = "") -> rx.Component:
                 class_name="nav-menu",
             ),
 
-            rx.box(
+        rx.box(
+            rx.cond(
+                State.is_logged_in,
+                rx.hstack(
+                    rx.text("Hola,", class_name="nav-user-muted"),
+                    rx.text(State.display_user_name, class_name="nav-user-name"),
+                    rx.button(
+                        "Salir",
+                        class_name="nav-logout",
+                        on_click=State.logout,
+                    ),
+                    spacing="2",
+                    align="center",
+                    class_name="nav-user-box",
+                ),
                 rx.link(
                     "Iniciar sesión",
-                    href="/login",
+                    href="/auth",
                     class_name="login-link",
                 ),
-                rx.button("⌕", class_name="nav-icon", on_click=State.toggle_search),
-                rx.button("☰", class_name="nav-icon", on_click=State.toggle_menu),
-                class_name="nav-actions",
             ),
+            rx.button("⌕", class_name="nav-icon", on_click=State.toggle_search),
+            rx.button("☰", class_name="nav-icon", on_click=State.toggle_menu),
+            class_name="nav-actions",
+        ),
 
             class_name="navbar-inner",
         ),

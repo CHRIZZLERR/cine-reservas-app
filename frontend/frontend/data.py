@@ -403,14 +403,6 @@ FOOD_MENU = [
         "image": "https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&w=500&q=80",
         "qty": 0,
     },
-    {
-        "id": "f5",
-        "nombre": "Mini Electric Shaver",
-        "descripcion": "Afeitadora eléctrica portátil — ideal para el camino",
-        "precio": 1200,
-        "image": "https://images.unsplash.com/photo-1621607512022-6aecc4fed814?auto=format&fit=crop&w=500&q=80",
-        "qty": 0,
-    },
 ]
 
 
