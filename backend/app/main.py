@@ -7,9 +7,9 @@ from app.routes import reservas
 from app.routes import sucursales
 
 app = FastAPI(
-    title="CineMax API",
-    description="API para la plataforma de reservas de cine CineMax",
-    version="1.0.0"
+    title="JC Cinemas API",
+    description="API para la plataforma de reservas de cine JC Cinemas",
+    version="1.0.0",
 )
 
 app.add_middleware(
@@ -29,6 +29,6 @@ app.include_router(sucursales.router)
 @app.get("/")
 def home():
     return {
-        "mensaje": "API de CineMax funcionando correctamente",
-        "estado": "online"
+        "mensaje": "API de JC Cinemas funcionando correctamente",
+        "estado": "online",
     }

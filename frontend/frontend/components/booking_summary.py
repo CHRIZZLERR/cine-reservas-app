@@ -57,6 +57,7 @@ def customer_form() -> rx.Component:
             spacing="3",
             class_name="form-header",
         ),
+
         rx.cond(
             State.is_logged_in,
             rx.vstack(
@@ -82,9 +83,15 @@ def customer_form() -> rx.Component:
                     class_name="form-input",
                     width="100%",
                 ),
+                rx.box(
+                    rx.text("Método de pago", class_name="payment-label"),
+                    rx.text("Pago en taquilla", class_name="payment-value"),
+                    class_name="payment-card",
+                ),
                 spacing="3",
                 width="100%",
             ),
+
             rx.grid(
                 rx.input(
                     placeholder="Nombre completo",
@@ -115,6 +122,13 @@ def customer_form() -> rx.Component:
                 class_name="form-grid",
             ),
         ),
+
+        rx.cond(
+            State.api_message != "",
+            rx.text(State.api_message, class_name="auth-message"),
+            rx.text(""),
+        ),
+
         class_name="form-card checkout-section-card",
     )
 
@@ -144,6 +158,7 @@ def confirmation() -> rx.Component:
                 ),
                 class_name="ticket-left",
             ),
+
             rx.box(
                 rx.text("RESUMEN DEL TICKET", class_name="ticket-kicker"),
                 rx.heading(State.current_movie["titulo"], class_name="ticket-movie"),
@@ -170,6 +185,7 @@ def confirmation() -> rx.Component:
                 ),
                 class_name="ticket-right",
             ),
+
             columns="2",
             spacing="5",
             width="100%",
@@ -193,6 +209,7 @@ def invoice() -> rx.Component:
             spacing="3",
             class_name="cart-header",
         ),
+
         rx.box(
             rx.image(src=State.current_movie["poster"], class_name="cart-poster"),
             rx.vstack(
@@ -204,11 +221,14 @@ def invoice() -> rx.Component:
             ),
             class_name="cart-movie",
         ),
+
         rx.divider(border_color="rgba(255,255,255,.10)", margin_y="14px"),
+
         cart_row("Función", State.selected_date),
         cart_row("Hora", State.selected_showtime),
         cart_row("Boletas", State.ticket_count),
         cart_row("Asientos", State.selected_seats_text),
+
         rx.cond(
             State.total_comida > 0,
             rx.box(
@@ -218,10 +238,13 @@ def invoice() -> rx.Component:
             ),
             rx.text("Sin productos de dulcería", class_name="cart-empty"),
         ),
+
         rx.divider(border_color="rgba(255,255,255,.10)", margin_y="14px"),
+
         cart_row("Subtotal boletos", money(State.total_boletos)),
         cart_row("Subtotal comida", money(State.total_comida)),
         cart_row("Cargo servicio", money(State.cargo_servicio)),
+
         rx.hstack(
             rx.text("Total", class_name="invoice-total-label"),
             rx.spacer(),
@@ -229,6 +252,13 @@ def invoice() -> rx.Component:
             width="100%",
             class_name="cart-total-row",
         ),
+
+        rx.cond(
+            State.api_message != "",
+            rx.text(State.api_message, class_name="auth-message"),
+            rx.text(""),
+        ),
+
         rx.cond(
             State.booking_step == 1,
             rx.button(
@@ -250,10 +280,19 @@ def invoice() -> rx.Component:
                 ),
             ),
         ),
+
         rx.cond(
             State.booking_step > 1,
-            rx.button("Volver al paso anterior", class_name="btn-ghost full", on_click=State.prev_step),
-            rx.link(rx.button("Cambiar película", class_name="btn-ghost full"), href="/cartelera"),
+            rx.button(
+                "Volver al paso anterior",
+                class_name="btn-ghost full",
+                on_click=State.prev_step,
+            ),
+            rx.link(
+                rx.button("Cambiar película", class_name="btn-ghost full"),
+                href="/cartelera",
+            ),
         ),
+
         class_name="invoice cart-panel",
     )

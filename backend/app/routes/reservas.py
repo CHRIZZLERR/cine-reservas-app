@@ -151,20 +151,19 @@ def obtener_asientos_ocupados(funcion_id: int):
 
     return {
         "funcion_id": funcion_id,
-        "asientos_ocupados": asientos_ocupados
+        "asientos_ocupados": asientos_ocupados,
     }
 
 
 @router.put("/admin/reservas/{reserva_id}/estado")
 def actualizar_estado_reserva(reserva_id: int, datos: EstadoReservaUpdate):
     estados_validos = ["pendiente", "confirmada", "cancelada"]
-
     nuevo_estado = datos.estado.strip().lower()
 
     if nuevo_estado not in estados_validos:
         raise HTTPException(
             status_code=400,
-            detail="Estado inválido. Use: pendiente, confirmada o cancelada"
+            detail="Estado inválido. Use: pendiente, confirmada o cancelada",
         )
 
     conexion = obtener_conexion()
@@ -195,7 +194,7 @@ def actualizar_estado_reserva(reserva_id: int, datos: EstadoReservaUpdate):
             "id": reserva_id,
             "codigo_reserva": reserva["codigo_reserva"],
             "estado_anterior": reserva["estado"],
-            "estado_nuevo": nuevo_estado
+            "estado_nuevo": nuevo_estado,
         }
 
     except HTTPException:
@@ -204,7 +203,10 @@ def actualizar_estado_reserva(reserva_id: int, datos: EstadoReservaUpdate):
 
     except Exception as error:
         conexion.rollback()
-        raise HTTPException(status_code=500, detail=f"Error al actualizar estado: {str(error)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al actualizar estado: {str(error)}",
+        )
 
     finally:
         conexion.close()
@@ -213,15 +215,27 @@ def actualizar_estado_reserva(reserva_id: int, datos: EstadoReservaUpdate):
 @router.post("/reservas")
 def crear_reserva(reserva: ReservaCreate):
     if len(reserva.asientos) == 0:
-        raise HTTPException(status_code=400, detail="Debe seleccionar al menos un asiento")
+        raise HTTPException(
+            status_code=400,
+            detail="Debe seleccionar al menos un asiento",
+        )
 
     if len(reserva.asientos) > 10:
-        raise HTTPException(status_code=400, detail="No se pueden reservar más de 10 asientos")
+        raise HTTPException(
+            status_code=400,
+            detail="No se pueden reservar más de 10 asientos",
+        )
 
-    asientos_normalizados = [asiento.strip().upper() for asiento in reserva.asientos]
+    asientos_normalizados = [
+        asiento.strip().upper()
+        for asiento in reserva.asientos
+    ]
 
     if len(asientos_normalizados) != len(set(asientos_normalizados)):
-        raise HTTPException(status_code=400, detail="No puedes repetir asientos en la misma reserva")
+        raise HTTPException(
+            status_code=400,
+            detail="No puedes repetir asientos en la misma reserva",
+        )
 
     conexion = obtener_conexion()
     cursor = conexion.cursor(dictionary=True)
@@ -247,12 +261,15 @@ def crear_reserva(reserva: ReservaCreate):
             AND asiento IN ({placeholders})
         """, (reserva.funcion_id, *asientos_normalizados))
 
-        asientos_ya_ocupados = [fila["asiento"] for fila in cursor.fetchall()]
+        asientos_ya_ocupados = [
+            fila["asiento"]
+            for fila in cursor.fetchall()
+        ]
 
         if len(asientos_ya_ocupados) > 0:
             raise HTTPException(
                 status_code=400,
-                detail=f"Estos asientos ya están reservados: {', '.join(asientos_ya_ocupados)}"
+                detail=f"Estos asientos ya están reservados: {', '.join(asientos_ya_ocupados)}",
             )
 
         cantidad_asientos = len(asientos_normalizados)
@@ -260,7 +277,16 @@ def crear_reserva(reserva: ReservaCreate):
 
         cursor.execute("""
             INSERT INTO reservas
-            (funcion_id, nombre_cliente, email_cliente, telefono_cliente, cantidad_asientos, total, metodo_pago, estado)
+            (
+                funcion_id,
+                nombre_cliente,
+                email_cliente,
+                telefono_cliente,
+                cantidad_asientos,
+                total,
+                metodo_pago,
+                estado
+            )
             VALUES (%s, %s, %s, %s, %s, %s, %s, 'pendiente')
         """, (
             reserva.funcion_id,
@@ -269,11 +295,11 @@ def crear_reserva(reserva: ReservaCreate):
             reserva.telefono_cliente,
             cantidad_asientos,
             total,
-            reserva.metodo_pago
+            reserva.metodo_pago,
         ))
 
         reserva_id = cursor.lastrowid
-        codigo_reserva = f"CMX-{reserva_id:05d}"
+        codigo_reserva = f"JCC-{reserva_id:05d}"
 
         cursor.execute("""
             UPDATE reservas
@@ -302,7 +328,7 @@ def crear_reserva(reserva: ReservaCreate):
             "cantidad_asientos": cantidad_asientos,
             "total": total,
             "metodo_pago": reserva.metodo_pago,
-            "estado": "pendiente"
+            "estado": "pendiente",
         }
 
     except HTTPException:
@@ -311,7 +337,10 @@ def crear_reserva(reserva: ReservaCreate):
 
     except Exception as error:
         conexion.rollback()
-        raise HTTPException(status_code=500, detail=f"Error al crear la reserva: {str(error)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al crear la reserva: {str(error)}",
+        )
 
     finally:
         conexion.close()

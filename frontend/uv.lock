@@ -67,11 +67,15 @@ name = "frontend"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "httpx" },
     { name = "reflex" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "reflex", specifier = ">=0.9.3" }]
+requires-dist = [
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "reflex", specifier = ">=0.9.3" },
+]
 
 [[package]]
 name = "granian"
