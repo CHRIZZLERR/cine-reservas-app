@@ -1,11 +1,11 @@
 ﻿import reflex as rx  # type: ignore[import]
 
 try:
-    from config import APP_NAME, APP_TAGLINE
+    from config import APP_NAME, APP_TAGLINE, APP_BRAND_LOGO
     from data import LOCATIONS, LOCATION_DETAILS
     from components.navbar import navbar, search_overlay, side_menu
 except ModuleNotFoundError:
-    from ..config import APP_NAME, APP_TAGLINE
+    from ..config import APP_NAME, APP_TAGLINE, APP_BRAND_LOGO
     from ..data import LOCATIONS, LOCATION_DETAILS
     from .navbar import navbar, search_overlay, side_menu
 
@@ -17,7 +17,11 @@ def site_footer() -> rx.Component:
                 # Col 1 — branding
                 rx.vstack(
                     rx.hstack(
-                        rx.box(APP_NAME[0:2], class_name="footer-brand-mark"),
+                        rx.image(
+                            src=APP_BRAND_LOGO,
+                            alt=APP_NAME,
+                            class_name="footer-brand-logo-img",
+                        ),
                         rx.vstack(
                             rx.text(APP_NAME.upper(), class_name="footer-brand-title"),
                             rx.text("CINE PREMIUM", class_name="footer-brand-sub"),

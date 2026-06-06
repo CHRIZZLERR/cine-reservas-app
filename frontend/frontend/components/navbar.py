@@ -1,11 +1,11 @@
 import reflex as rx  # type: ignore[import]
 
 try:
-    from config import APP_NAME, APP_BRAND_MARK, APP_BRAND_SUB
+    from config import APP_NAME, APP_BRAND_MARK, APP_BRAND_SUB, APP_BRAND_LOGO
     from state import State
     from data import LOCATIONS
 except ModuleNotFoundError:
-    from ..config import APP_NAME, APP_BRAND_MARK, APP_BRAND_SUB
+    from ..config import APP_NAME, APP_BRAND_MARK, APP_BRAND_SUB, APP_BRAND_LOGO
     from ..state import State
     from ..data import LOCATIONS
 
@@ -16,50 +16,39 @@ def nav_class(active: str, name: str) -> str:
 
 def navbar(active: str = "") -> rx.Component:
     return rx.box(
-        rx.hstack(
+        rx.box(
             rx.link(
-                rx.hstack(
-                    rx.box(APP_BRAND_MARK, class_name="brand-mark"),
-                    rx.vstack(
-                        rx.text(APP_NAME.upper(), class_name="brand-title"),
-                        rx.text(APP_BRAND_SUB, class_name="brand-sub"),
-                        spacing="0",
-                        align="start",
-                    ),
-                    spacing="3",
-                    align="center",
+                rx.image(
+                    src=APP_BRAND_LOGO,
+                    alt=APP_NAME,
+                    class_name="brand-logo-img",
                 ),
                 href="/",
                 text_decoration="none",
+                class_name="brand-link",
             ),
-            rx.spacer(),
-            rx.hstack(
+
+            rx.box(
                 rx.link("Inicio", href="/", class_name=nav_class(active, "inicio")),
                 rx.link("Cartelera", href="/cartelera", class_name=nav_class(active, "cartelera")),
                 rx.link("Próximamente", href="/proximamente", class_name=nav_class(active, "proximamente")),
                 rx.link("Ubicaciones", href="/ubicaciones", class_name=nav_class(active, "ubicaciones")),
                 rx.link("Boletos", href="/reservar", class_name=nav_class(active, "boletos")),
-                rx.cond(
-                    State.is_logged_in,
-                    rx.hstack(
-                        rx.text("Hola,", class_name="nav-user-muted"),
-                        rx.text(State.display_user_name, class_name="nav-user-name"),
-                        rx.button("Salir", class_name="nav-logout", on_click=State.logout),
-                        spacing="2",
-                        align="center",
-                    ),
-                    rx.link("Iniciar sesión", href="/auth", class_name="login-link"),
-                ),
-                spacing="6",
                 class_name="nav-menu",
             ),
-            rx.hstack(
+
+            rx.box(
+                rx.link(
+                    "Iniciar sesión",
+                    href="/login",
+                    class_name="login-link",
+                ),
                 rx.button("⌕", class_name="nav-icon", on_click=State.toggle_search),
                 rx.button("☰", class_name="nav-icon", on_click=State.toggle_menu),
-                spacing="3",
+                class_name="nav-actions",
             ),
-            align="center",
-            width="100%",
+
+            class_name="navbar-inner",
         ),
         class_name="navbar",
     )

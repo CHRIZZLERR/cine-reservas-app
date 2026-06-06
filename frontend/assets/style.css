@@ -58,8 +58,10 @@ a     { text-decoration: none; color: inherit; }
 
 .navbar {
   position: fixed;
-  top: 0; left: 0; right: 0;
-  height: 72px;
+  top: 0; 
+  left: 0; 
+  right: 0;
+  height: 86px;
   z-index: 900;
   padding: 0 56px;
   display: flex;
@@ -2277,6 +2279,139 @@ a     { text-decoration: none; color: inherit; }
   .qty-control {
     grid-column: 1 / -1;
     justify-content: flex-end;
+  }
+}
+
+.brand-logo-img {
+  width: 260px !important;
+  height: 74px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  display: block !important;
+  filter: drop-shadow(0 0 18px rgba(107,174,255,.18));
+}
+
+.navbar .brand-title,
+.navbar .brand-sub,
+.navbar .brand-mark {
+  display: none !important;
+}
+
+.footer-brand-logo-img {
+  width: 320px !important;
+  height: 115px !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  display: block !important;
+  filter: drop-shadow(0 0 18px rgba(107,174,255,.18));
+}
+
+.footer-brand-title,
+.footer-brand-sub,
+.footer-brand-mark {
+  display: none !important;
+}
+
+/* =============================================================
+   NAVBAR JC CINEMAS — AJUSTE COMPACTO FINAL
+   ============================================================= */
+
+.navbar {
+  height: 82px !important;
+  padding: 0 44px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.navbar-inner {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.brand-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 245px !important;
+  min-width: 245px !important;
+  margin-right: 26px !important;
+}
+
+.brand-logo-img {
+  width: 225px !important;
+  min-width: 0 !important;
+  max-width: 225px !important;
+  height: auto !important;
+  object-fit: contain !important;
+  object-position: left center !important;
+  display: block !important;
+  filter: drop-shadow(0 0 14px rgba(107,174,255,.20));
+}
+
+.nav-menu {
+  position: static !important;
+  transform: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 28px !important;
+  white-space: nowrap !important;
+  width: auto !important;
+  flex: 0 0 auto !important;
+  margin-left: 70px !important;
+}
+
+.nav-actions {
+  margin-left: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: 12px !important;
+  white-space: nowrap !important;
+}
+
+.login-link {
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  padding: 11px 22px !important;
+  border-radius: 999px !important;
+  background: rgba(155, 0, 24, .18) !important;
+  border: 1px solid rgba(210, 11, 47, .42) !important;
+  color: #fff !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.navbar .brand-title,
+.navbar .brand-sub,
+.navbar .brand-mark {
+  display: none !important;
+}
+
+@media (max-width: 1200px) {
+  .navbar {
+    padding: 0 24px !important;
+  }
+
+  .brand-link {
+    width: 220px !important;
+    min-width: 220px !important;
+    margin-right: 20px !important;
+  }
+
+  .brand-logo-img {
+    width: 200px !important;
+    max-width: 200px !important;
+  }
+
+  .nav-menu {
+    display: none !important;
   }
 }
 
