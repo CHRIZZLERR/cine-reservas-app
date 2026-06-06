@@ -10,6 +10,32 @@ except ModuleNotFoundError:
     from .schedule import showtimes_section
 
 
+def trailer_box() -> rx.Component:
+    return rx.cond(
+        State.show_trailer,
+        rx.box(
+            rx.el.iframe(
+                src=State.trailer_url,
+                class_name="trailer-frame",
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+                allowfullscreen=True,
+            ),
+            class_name="trailer-box",
+        ),
+        rx.box(
+            rx.image(
+                src=State.current_movie["image"],
+                class_name="trailer-placeholder-img",
+            ),
+            rx.box(
+                'Presiona "Ver trailer" para cargar el video aquí mismo.',
+                class_name="trailer-placeholder-text",
+            ),
+            class_name="trailer-placeholder",
+        ),
+    )
+
+
 def detail_page() -> rx.Component:
     return rx.box(
         navbar("cartelera"),
@@ -35,12 +61,10 @@ def detail_page() -> rx.Component:
                         State.current_movie["fecha_estreno"],
                         class_name="section-kicker",
                     ),
-
                     rx.heading(
                         State.current_movie["titulo"],
                         class_name="detail-title",
                     ),
-
                     rx.hstack(
                         rx.text(
                             State.current_movie["genero"],
@@ -57,22 +81,24 @@ def detail_page() -> rx.Component:
                         spacing="2",
                         wrap="wrap",
                     ),
-
                     rx.text(
                         State.current_movie["sinopsis"],
                         class_name="detail-desc",
                     ),
-
                     rx.hstack(
                         rx.text("Director:", class_name="detail-label"),
-                        rx.text(State.current_movie["director"], class_name="detail-value"),
+                        rx.text(
+                            State.current_movie["director"],
+                            class_name="detail-value",
+                        ),
                     ),
-
                     rx.hstack(
                         rx.text("Reparto:", class_name="detail-label"),
-                        rx.text(State.current_movie["reparto"], class_name="detail-value"),
+                        rx.text(
+                            State.current_movie["reparto"],
+                            class_name="detail-value",
+                        ),
                     ),
-
                     rx.hstack(
                         rx.button(
                             "Ver trailer",
@@ -86,31 +112,7 @@ def detail_page() -> rx.Component:
                         ),
                         spacing="2",
                     ),
-
-                    rx.cond(
-                        State.show_trailer,
-                        rx.box(
-                            rx.el.iframe(
-                                src=State.trailer_url,
-                                class_name="trailer-frame",
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
-                                allowfullscreen=True,
-                            ),
-                            class_name="trailer-box",
-                        ),
-                        rx.box(
-                            rx.image(
-                                src=State.current_movie["image"],
-                                class_name="trailer-placeholder-img",
-                            ),
-                            rx.box(
-                                'Presiona "Ver trailer" para cargar el video aquí mismo.',
-                                class_name="trailer-placeholder-text",
-                            ),
-                            class_name="trailer-placeholder",
-                        ),
-                    ),
-
+                    trailer_box(),
                     spacing="3",
                     align="start",
                     class_name="detail-info",
@@ -130,5 +132,6 @@ def detail_page() -> rx.Component:
         side_menu(),
 
         class_name="page",
-        on_mount=State.cargar_funciones_api,
+
+        on_mount=State.load_movie_functions,
     )

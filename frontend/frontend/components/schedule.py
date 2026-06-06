@@ -2,10 +2,8 @@ import reflex as rx  # type: ignore[import]
 
 try:
     from state import State
-    from data import LOCATIONS
 except ModuleNotFoundError:
     from ..state import State
-    from ..data import LOCATIONS
 
 
 def loc_button(loc: str) -> rx.Component:
@@ -32,26 +30,15 @@ def date_button(date: str) -> rx.Component:
     )
 
 
-def showtime_button(funcion: dict) -> rx.Component:
+def showtime_button(time: str) -> rx.Component:
     return rx.button(
-        rx.hstack(
-            rx.text(funcion["hora"]),
-            rx.text("•"),
-            rx.text(funcion["sala"]),
-            spacing="1",
-            align="center",
-        ),
+        time,
         class_name=rx.cond(
-            State.selected_funcion_id == funcion["id"],
+            State.selected_showtime == time,
             "showtime showtime-active",
             "showtime",
         ),
-        on_click=lambda: State.set_showtime(
-            funcion["id"],
-            funcion["hora"],
-            funcion["fecha"],
-            funcion["precio"],
-        ),
+        on_click=lambda: State.set_showtime(time),
     )
 
 
@@ -66,43 +53,32 @@ def showtimes_section() -> rx.Component:
 
         rx.text("Ubicación", class_name="block-label"),
         rx.hstack(
-            rx.foreach(LOCATIONS, loc_button),
+            rx.foreach(
+                [
+                    "Downtown Center",
+                    "Galería 360",
+                    "Ágora Mall",
+                    "Blue Mall",
+                    "Sambil",
+                ],
+                loc_button,
+            ),
             spacing="2",
             wrap="wrap",
         ),
 
         rx.text("Fecha", class_name="block-label"),
-        rx.cond(
-            State.available_dates.length() > 0,
-            rx.hstack(
-                rx.foreach(State.available_dates, date_button),
-                spacing="2",
-                wrap="wrap",
-            ),
-            rx.text(
-                "No hay fechas disponibles para esta película en esta ubicación.",
-                class_name="muted",
-            ),
+        rx.hstack(
+            rx.foreach(State.available_dates, date_button),
+            spacing="2",
+            wrap="wrap",
         ),
 
         rx.text("Horarios disponibles", class_name="block-label"),
-        rx.cond(
-            State.showtimes.length() > 0,
-            rx.hstack(
-                rx.foreach(State.showtimes, showtime_button),
-                spacing="2",
-                wrap="wrap",
-            ),
-            rx.text(
-                "No hay funciones disponibles para esta película en esta fecha.",
-                class_name="muted",
-            ),
-        ),
-
-        rx.cond(
-            State.api_message != "",
-            rx.text(State.api_message, class_name="auth-message"),
-            rx.fragment(),
+        rx.hstack(
+            rx.foreach(State.showtimes, showtime_button),
+            spacing="2",
+            wrap="wrap",
         ),
 
         rx.button(
