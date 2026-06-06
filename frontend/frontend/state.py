@@ -11,6 +11,10 @@ class State(rx.State):
     hero_index: int = 0
     movie_id: int = 1
 
+    is_logged_in: bool = False
+    logged_user_name: str = ""
+    logged_user_email: str = ""
+
     search_text: str = ""
     show_search: bool = False
     show_menu: bool = False
@@ -24,6 +28,19 @@ class State(rx.State):
     selected_seats: list[str] = []
     food_cart: list[dict] = FOOD_MENU
     booking_step: int = 1
+
+    auth_mode: str = "login"
+    login_email: str = ""
+    login_password: str = ""
+    register_name: str = ""
+    register_email: str = ""
+    register_password: str = ""
+    register_confirm_password: str = ""
+    auth_message: str = ""
+
+    is_logged_in: bool = False
+    logged_user_name: str = ""
+    logged_user_email: str = ""
 
     customer_name: str = ""
     customer_email: str = ""
@@ -203,6 +220,65 @@ class State(rx.State):
     @rx.var
     def row_L(self) -> list[dict]: return self.seats[154:168]
 
+    @rx.var
+    def display_user_name(self) -> str:
+        return self.logged_user_name if self.is_logged_in else "Iniciar sesión"
+
+
+    @rx.var
+    def reservation_customer_name(self) -> str:
+        return self.logged_user_name if self.is_logged_in else self.customer_name
+
+
+    @rx.var
+    def reservation_customer_email(self) -> str:
+        return self.logged_user_email if self.is_logged_in else self.customer_email
+
+
+    @rx.var
+    def reservation_qr_data(self) -> str:
+        return (
+            f"Reserva: {self.reservation_code}\n"
+            f"Cliente: {self.reservation_customer_name}\n"
+            f"Correo: {self.reservation_customer_email}\n"
+            f"Pelicula: {self.current_movie['titulo']}\n"
+            f"Cine: {self.selected_location}\n"
+            f"Fecha: {self.selected_date}\n"
+            f"Hora: {self.selected_showtime}\n"
+            f"Asientos: {self.selected_seats_text}\n"
+            f"Total: RD${self.gran_total}"
+        )
+
+
+    @rx.var
+    def reservation_qr_url(self) -> str:
+        from urllib.parse import quote
+
+        data = quote(self.reservation_qr_data)
+        return f"https://api.qrserver.com/v1/create-qr-code/?size=220x220&data={data}"
+
+
+    @rx.var
+    def reservation_email_link(self) -> str:
+        from urllib.parse import quote
+
+        subject = quote(f"Reserva {self.reservation_code} - JC Cinemas")
+        body = quote(
+            f"Hola {self.reservation_customer_name},\n\n"
+            f"Tu reserva fue creada correctamente.\n\n"
+            f"Código: {self.reservation_code}\n"
+            f"Película: {self.current_movie['titulo']}\n"
+            f"Cine: {self.selected_location}\n"
+            f"Fecha: {self.selected_date}\n"
+            f"Hora: {self.selected_showtime}\n"
+            f"Asientos: {self.selected_seats_text}\n"
+            f"Total: RD${self.gran_total}\n\n"
+            f"QR de la reserva:\n{self.reservation_qr_url}\n\n"
+            f"Presenta este código o QR en taquilla."
+        )
+
+        return f"mailto:{self.reservation_customer_email}?subject={subject}&body={body}"
+
     def next_hero(self):
         self.hero_index = (self.hero_index + 1) % len(HERO_SLIDES)
 
@@ -249,6 +325,17 @@ class State(rx.State):
 
     def close_trailer(self):
         self.show_trailer = False
+
+    def logout(self):
+        self.is_logged_in = False
+        self.logged_user_name = ""
+        self.logged_user_email = ""
+        self.login_email = ""
+        self.login_password = ""
+        self.customer_name = ""
+        self.customer_email = ""
+        self.auth_message = ""
+        return rx.redirect("/")
 
     def set_location(self, location: str):
         self.selected_location = location
@@ -358,11 +445,16 @@ class State(rx.State):
             return
 
         self.is_logged_in = True
-        self.logged_user_name = self.login_email.split("@")[0]
+        self.logged_user_email = self.login_email
+        self.logged_user_name = self.login_email.split("@")[0].title()
+
+        self.customer_name = self.logged_user_name
+        self.customer_email = self.logged_user_email
+
         self.auth_message = "Sesión iniciada correctamente."
         return rx.redirect("/")
 
-    def register(self):
+    def register_user(self):
         if not self.register_name or not self.register_email or not self.register_password:
             self.auth_message = "Completa todos los campos."
             return
@@ -373,12 +465,10 @@ class State(rx.State):
 
         self.is_logged_in = True
         self.logged_user_name = self.register_name
-        self.auth_message = "Cuenta creada correctamente."
-        return rx.redirect("/")
+        self.logged_user_email = self.register_email
 
-    def logout(self):
-        self.is_logged_in = False
-        self.logged_user_name = ""
-        self.login_email = ""
-        self.login_password = ""
+        self.customer_name = self.register_name
+        self.customer_email = self.register_email
+
+        self.auth_message = "Cuenta creada correctamente."
         return rx.redirect("/")

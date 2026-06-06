@@ -14,9 +14,16 @@ def customer_form() -> rx.Component:
             rx.box("👤", class_name="form-icon"),
             rx.vstack(
                 rx.text("DATOS DE RESERVA", class_name="block-label"),
-                rx.text(
-                    "Completa tus datos para generar el código y QR de reserva.",
-                    class_name="form-subtitle",
+                rx.cond(
+                    State.is_logged_in,
+                    rx.text(
+                        "Ya iniciaste sesión. Usaremos tus datos de cuenta para la reserva.",
+                        class_name="form-subtitle",
+                    ),
+                    rx.text(
+                        "Completa tus datos para generar el código y QR de reserva.",
+                        class_name="form-subtitle",
+                    ),
                 ),
                 spacing="1",
                 align="start",
@@ -25,35 +32,63 @@ def customer_form() -> rx.Component:
             spacing="3",
             class_name="form-header",
         ),
-        rx.grid(
-            rx.input(
-                placeholder="Nombre completo",
-                value=State.customer_name,
-                on_change=State.set_customer_name,
-                class_name="form-input",
+
+        rx.cond(
+            State.is_logged_in,
+            rx.vstack(
+                rx.box(
+                    rx.text("Cliente", class_name="payment-label"),
+                    rx.text(State.logged_user_name, class_name="payment-value"),
+                    class_name="payment-card",
+                    width="100%",
+                ),
+                rx.box(
+                    rx.text("Correo", class_name="payment-label"),
+                    rx.text(State.logged_user_email, class_name="payment-value"),
+                    class_name="payment-card",
+                    width="100%",
+                ),
+                rx.input(
+                    placeholder="Teléfono",
+                    value=State.customer_phone,
+                    on_change=State.set_customer_phone,
+                    class_name="form-input",
+                    width="100%",
+                ),
+                spacing="3",
+                width="100%",
             ),
-            rx.input(
-                placeholder="Correo electrónico",
-                value=State.customer_email,
-                on_change=State.set_customer_email,
-                class_name="form-input",
+            rx.grid(
+                rx.input(
+                    placeholder="Nombre completo",
+                    value=State.customer_name,
+                    on_change=State.set_customer_name,
+                    class_name="form-input",
+                ),
+                rx.input(
+                    placeholder="Correo electrónico",
+                    value=State.customer_email,
+                    on_change=State.set_customer_email,
+                    class_name="form-input",
+                ),
+                rx.input(
+                    placeholder="Teléfono",
+                    value=State.customer_phone,
+                    on_change=State.set_customer_phone,
+                    class_name="form-input",
+                ),
+                rx.box(
+                    rx.text("Método de pago", class_name="payment-label"),
+                    rx.text("Pago en taquilla", class_name="payment-value"),
+                    class_name="payment-card",
+                ),
+                columns="2",
+                spacing="3",
+                width="100%",
+                class_name="form-grid",
             ),
-            rx.input(
-                placeholder="Teléfono",
-                value=State.customer_phone,
-                on_change=State.set_customer_phone,
-                class_name="form-input",
-            ),
-            rx.box(
-                rx.text("Método de pago", class_name="payment-label"),
-                rx.text("Pago en taquilla", class_name="payment-value"),
-                class_name="payment-card",
-            ),
-            columns="2",
-            spacing="3",
-            width="100%",
-            class_name="form-grid",
         ),
+
         class_name="form-card",
     )
 
@@ -64,22 +99,27 @@ def confirmation() -> rx.Component:
         rx.heading("Reserva confirmada", class_name="confirm-title"),
         rx.text("Tu código de reserva es:", class_name="muted"),
         rx.text(State.reservation_code, class_name="reservation-code"),
+
         rx.image(
             src=State.reservation_qr_url,
             class_name="reservation-qr",
         ),
+
         rx.text(
-            "Presenta este código o QR en taquilla para completar el pago.",
+            "Tu QR fue generado con los datos de tu reserva.",
             class_name="muted",
         ),
+
         rx.link(
-            rx.button("Preparar correo con reserva", class_name="btn-primary-lg"),
+            rx.button("Enviar QR al correo", class_name="btn-primary-lg"),
             href=State.reservation_email_link,
         ),
+
         rx.link(
             rx.button("Volver al inicio", class_name="btn-ghost"),
             href="/",
         ),
+
         class_name="confirm-card",
     )
 

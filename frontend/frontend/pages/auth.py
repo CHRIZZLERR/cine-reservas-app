@@ -66,7 +66,7 @@ def register_form() -> rx.Component:
             on_change=State.set_register_confirm_password,
             class_name="form-input",
         ),
-        rx.button("Crear cuenta", class_name="checkout-btn", on_click=State.register),
+        rx.button("Crear cuenta", class_name="checkout-btn", on_click=State.register_user),
         rx.button(
             "Ya tengo cuenta",
             class_name="btn-ghost full",

@@ -39,7 +39,17 @@ def navbar(active: str = "") -> rx.Component:
                 rx.link("Próximamente", href="/proximamente", class_name=nav_class(active, "proximamente")),
                 rx.link("Ubicaciones", href="/ubicaciones", class_name=nav_class(active, "ubicaciones")),
                 rx.link("Boletos", href="/reservar", class_name=nav_class(active, "boletos")),
-                rx.link("Iniciar sesión", href="/auth", class_name="login-link"),
+                rx.cond(
+                    State.is_logged_in,
+                    rx.hstack(
+                        rx.text("Hola,", class_name="nav-user-muted"),
+                        rx.text(State.display_user_name, class_name="nav-user-name"),
+                        rx.button("Salir", class_name="nav-logout", on_click=State.logout),
+                        spacing="2",
+                        align="center",
+                    ),
+                    rx.link("Iniciar sesión", href="/auth", class_name="login-link"),
+                ),
                 spacing="6",
                 class_name="nav-menu",
             ),
@@ -117,7 +127,16 @@ def side_menu() -> rx.Component:
                 rx.link("Próximamente", href="/proximamente", class_name="drawer-link", on_click=State.close_menu),
                 rx.link("Ubicaciones", href="/ubicaciones", class_name="drawer-link", on_click=State.close_menu),
                 rx.link("Comprar boletos", href="/reservar", class_name="drawer-link", on_click=State.close_menu),
-                rx.link("Iniciar sesión", href="/auth", class_name="drawer-link", on_click=State.close_menu),
+                rx.cond(
+                    State.is_logged_in,
+                    rx.vstack(
+                        rx.text(f"Hola, {State.display_user_name}", class_name="drawer-small"),
+                        rx.button("Cerrar sesión", class_name="btn-ghost full", on_click=State.logout),
+                        width="100%",
+                        spacing="2",
+                    ),
+                    rx.link("Iniciar sesión", href="/auth", class_name="drawer-link", on_click=State.close_menu),
+                ),
                 rx.box(
                     rx.text("Cines disponibles", class_name="drawer-kicker"),
                     rx.foreach(LOCATIONS, lambda loc: rx.text(loc, class_name="drawer-small")),
