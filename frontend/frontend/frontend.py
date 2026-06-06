@@ -8,6 +8,7 @@ from frontend.components.movie_detail import detail_page
 from frontend.pages.home import index
 from frontend.pages.reserva import booking_page
 from frontend.pages.auth import auth_page
+from frontend.pages.admin import admin_page
 from frontend.state import State
 
 
@@ -94,3 +95,4 @@ app.add_page(locations_page, route="/ubicaciones", title=f"{APP_NAME} | Ubicacio
 app.add_page(detail_page, route="/pelicula", title=f"{APP_NAME} | Detalle")
 app.add_page(booking_page, route="/reservar", title=f"{APP_NAME} | Reservar")
 app.add_page(auth_page, route="/auth", title=f"{APP_NAME} | Iniciar sesión")
+app.add_page(admin_page, route="/admin", title=f"{APP_NAME} | Panel Admin")
