@@ -216,3 +216,26 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Variables de entorno / secretos
+.env
+*.env
+backend/.env
+frontend/.env
+
+# Reflex / archivos generados
+frontend/.web/
+frontend/.states/
+frontend/__pycache__/
+frontend/frontend/__pycache__/
+frontend/frontend/components/__pycache__/
+frontend/frontend/pages/__pycache__/
+
+# Node
+node_modules/
+frontend/.web/node_modules/
+
+# Entornos virtuales
+.venv/
+backend/.venv/
+frontend/.venv/

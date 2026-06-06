@@ -5,6 +5,7 @@ from app.routes import peliculas
 from app.routes import funciones
 from app.routes import reservas
 from app.routes import sucursales
+from app.routes import tmdb
 
 app = FastAPI(
     title="JC Cinemas API",
@@ -24,6 +25,7 @@ app.include_router(peliculas.router)
 app.include_router(funciones.router)
 app.include_router(reservas.router)
 app.include_router(sucursales.router)
+app.include_router(tmdb.router)
 
 
 @app.get("/")
