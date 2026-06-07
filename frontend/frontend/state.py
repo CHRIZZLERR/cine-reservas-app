@@ -26,6 +26,13 @@ class State(rx.State):
     api_message: str = ""
 
     # =====================================================
+    # ADMIN
+    # =====================================================
+
+    admin_message: str = ""
+    admin_usuarios: list[dict] = []
+
+    # =====================================================
     # LOGIN / USUARIO
     # =====================================================
 
@@ -478,6 +485,87 @@ class State(rx.State):
         return self.seats[154:168]
 
     # =====================================================
+    # ADMIN / USUARIOS
+    # =====================================================
+
+    @rx.var
+    def total_admin_usuarios(self) -> int:
+        return len(self.admin_usuarios)
+
+    @rx.var
+    def total_admin_roles(self) -> int:
+        return len([u for u in self.admin_usuarios if u.get("rol") == "admin"])
+
+    @rx.var
+    def total_cliente_roles(self) -> int:
+        return len([u for u in self.admin_usuarios if u.get("rol") == "cliente"])
+
+    def load_admin_usuarios(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para ver usuarios."
+            return
+
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/auth/usuarios",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudieron cargar los usuarios.")
+                self.admin_usuarios = []
+                return
+
+            usuarios_limpios = []
+
+            for usuario in data:
+                usuarios_limpios.append(
+                    {
+                        "id": int(usuario.get("id", 0)),
+                        "nombre": str(usuario.get("nombre", "")),
+                        "email": str(usuario.get("email", "")),
+                        "rol": str(usuario.get("rol", "")),
+                        "activo": bool(usuario.get("activo", False)),
+                        "fecha_creacion": str(usuario.get("fecha_creacion", "")),
+                    }
+                )
+
+            self.admin_usuarios = usuarios_limpios
+
+        except Exception as error:
+            self.admin_message = f"Error conectando con el servidor: {str(error)}"
+            self.admin_usuarios = []
+
+    def toggle_user_status(self, usuario_id: int):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para modificar usuarios."
+            return
+
+        try:
+            response = httpx.put(
+                f"{API_BASE_URL}/admin/usuarios/{usuario_id}/estado",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo actualizar el usuario.")
+                return
+
+            self.admin_message = data.get("mensaje", "Usuario actualizado correctamente.")
+            self.load_admin_usuarios()
+
+        except Exception as error:
+            self.admin_message = f"Error conectando con el servidor: {str(error)}"
+
+    # =====================================================
     # HERO / NAVEGACIÓN
     # =====================================================
 
@@ -809,5 +897,6 @@ class State(rx.State):
         self.customer_email = ""
         self.auth_message = ""
         self.api_message = ""
+        self.admin_message = ""
 
         return rx.redirect("/")

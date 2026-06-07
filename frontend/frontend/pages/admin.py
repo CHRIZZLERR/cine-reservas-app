@@ -64,19 +64,23 @@ def stat_card(label: str, value: str, detail: str) -> rx.Component:
 def access_denied() -> rx.Component:
     return rx.box(
         navbar("admin"),
-        rx.center(
+
+        rx.box(
             rx.box(
                 rx.heading(
                     "Acceso restringido",
                     color="white",
-                    font_size="48px",
+                    font_size="46px",
                     margin_bottom="14px",
+                    text_align="center",
                 ),
                 rx.text(
                     "Debes iniciar sesión como administrador para entrar al panel.",
                     color="#b8c0d4",
                     font_size="17px",
-                    margin_bottom="24px",
+                    margin_bottom="26px",
+                    text_align="center",
+                    line_height="1.6",
                 ),
                 rx.link(
                     rx.button(
@@ -86,19 +90,35 @@ def access_denied() -> rx.Component:
                         border_radius="16px",
                         padding="12px 26px",
                         font_weight="800",
+                        border="none",
+                        cursor="pointer",
                     ),
                     href="/auth",
+                    text_decoration="none",
                 ),
+                width="100%",
+                max_width="650px",
                 padding="50px",
                 border_radius="28px",
-                background="rgba(12,16,28,.92)",
-                border="1px solid rgba(255,255,255,.09)",
-                box_shadow="0 20px 70px rgba(0,0,0,.45)",
+                background="linear-gradient(145deg, rgba(12,16,28,.98), rgba(28,10,28,.94))",
+                border="1px solid rgba(255,255,255,.10)",
+                box_shadow="0 22px 75px rgba(0,0,0,.55)",
                 text_align="center",
-                max_width="650px",
             ),
-            min_height="80vh",
+            position="fixed",
+            top="95px",
+            left="0",
+            right="0",
+            bottom="0",
+            width="100vw",
+            display="flex",
+            align_items="center",
+            justify_content="center",
+            padding="24px",
+            background="radial-gradient(circle at left, rgba(122,0,35,.20), transparent 35%), #030407",
+            z_index="1",
         ),
+
         search_overlay(),
         side_menu(),
         class_name="page",
