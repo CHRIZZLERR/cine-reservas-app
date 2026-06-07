@@ -32,6 +32,17 @@ class State(rx.State):
     admin_message: str = ""
     admin_usuarios: list[dict] = []
     admin_reservas: list[dict] = []
+    admin_peliculas: list[dict] = []
+
+    admin_edit_movie_id: int = 0
+    admin_movie_titulo: str = ""
+    admin_movie_sinopsis: str = ""
+    admin_movie_genero: str = ""
+    admin_movie_clasificacion: str = ""
+    admin_movie_duracion: str = ""
+    admin_movie_poster_url: str = ""
+    admin_movie_estado: str = "cartelera"
+    admin_movie_fecha_estreno: str = ""
 
     # =====================================================
     # LOGIN / USUARIO
@@ -673,6 +684,217 @@ class State(rx.State):
 
             self.admin_message = data.get("mensaje", "Estado de reserva actualizado correctamente.")
             self.load_admin_reservas()
+
+        except Exception as error:
+            self.admin_message = f"Error conectando con el servidor: {str(error)}"
+
+    # =====================================================
+    # ADMIN / PELÍCULAS
+    # =====================================================
+
+    @rx.var
+    def total_admin_peliculas(self) -> int:
+        return len(self.admin_peliculas)
+
+    @rx.var
+    def total_peliculas_cartelera(self) -> int:
+        return len([p for p in self.admin_peliculas if p.get("estado") == "cartelera"])
+
+    @rx.var
+    def total_peliculas_proximamente(self) -> int:
+        return len([p for p in self.admin_peliculas if p.get("estado") == "proximamente"])
+
+    @rx.var
+    def total_peliculas_inactivas(self) -> int:
+        return len([p for p in self.admin_peliculas if not p.get("activa") or p.get("estado") == "inactiva"])
+
+    def limpiar_pelicula_admin(self, pelicula: dict) -> dict:
+        sinopsis = str(pelicula.get("sinopsis") or "")
+        poster_url = str(pelicula.get("poster_url") or "")
+        trailer = str(pelicula.get("trailer") or "")
+
+        if not poster_url:
+            poster_url = "https://via.placeholder.com/400x600/0f1320/ffffff?text=JC+Cinemas"
+
+        trailer_url = ""
+        if trailer:
+            if "youtube.com" in trailer or "youtu.be" in trailer:
+                trailer_url = trailer
+            else:
+                trailer_url = f"https://www.youtube.com/watch?v={trailer}"
+
+        return {
+            "id": int(pelicula.get("id", 0)),
+            "tmdb_id": int(pelicula.get("tmdb_id") or 0),
+            "titulo": str(pelicula.get("titulo") or ""),
+            "sinopsis": sinopsis,
+            "sinopsis_corta": sinopsis[:180] + "..." if len(sinopsis) > 180 else sinopsis,
+            "genero": str(pelicula.get("genero") or "No disponible"),
+            "clasificacion": str(pelicula.get("clasificacion") or "S/R"),
+            "duracion_minutos": int(pelicula.get("duracion_minutos") or 0),
+            "duracion_texto": f"{int(pelicula.get('duracion_minutos') or 0)} min",
+            "poster_url": poster_url,
+            "backdrop_url": str(pelicula.get("backdrop_url") or ""),
+            "trailer": trailer,
+            "trailer_url": trailer_url,
+            "director": str(pelicula.get("director") or ""),
+            "reparto": str(pelicula.get("reparto") or ""),
+            "rating": str(pelicula.get("rating") or "0"),
+            "estado": str(pelicula.get("estado") or "cartelera"),
+            "fecha_estreno": str(pelicula.get("fecha_estreno") or ""),
+            "activa": bool(pelicula.get("activa", False)),
+        }
+
+    def load_admin_peliculas(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para ver películas."
+            return
+
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/admin/peliculas",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudieron cargar las películas.")
+                self.admin_peliculas = []
+                return
+
+            peliculas_limpias = []
+
+            for pelicula in data:
+                peliculas_limpias.append(self.limpiar_pelicula_admin(pelicula))
+
+            self.admin_peliculas = peliculas_limpias
+
+        except Exception as error:
+            self.admin_message = f"Error conectando con el servidor: {str(error)}"
+            self.admin_peliculas = []
+
+    def select_admin_pelicula(self, pelicula_id: int):
+        self.admin_message = ""
+
+        for pelicula in self.admin_peliculas:
+            if int(pelicula.get("id", 0)) == pelicula_id:
+                self.admin_edit_movie_id = pelicula_id
+                self.admin_movie_titulo = pelicula.get("titulo", "")
+                self.admin_movie_sinopsis = pelicula.get("sinopsis", "")
+                self.admin_movie_genero = pelicula.get("genero", "")
+                self.admin_movie_clasificacion = pelicula.get("clasificacion", "")
+                self.admin_movie_duracion = str(pelicula.get("duracion_minutos", ""))
+                self.admin_movie_poster_url = pelicula.get("poster_url", "")
+                self.admin_movie_estado = pelicula.get("estado", "cartelera")
+                self.admin_movie_fecha_estreno = pelicula.get("fecha_estreno", "")
+                break
+
+    def clear_admin_pelicula_form(self):
+        self.admin_edit_movie_id = 0
+        self.admin_movie_titulo = ""
+        self.admin_movie_sinopsis = ""
+        self.admin_movie_genero = ""
+        self.admin_movie_clasificacion = ""
+        self.admin_movie_duracion = ""
+        self.admin_movie_poster_url = ""
+        self.admin_movie_estado = "cartelera"
+        self.admin_movie_fecha_estreno = ""
+
+    def set_admin_movie_titulo(self, v: str):
+        self.admin_movie_titulo = v
+
+    def set_admin_movie_sinopsis(self, v: str):
+        self.admin_movie_sinopsis = v
+
+    def set_admin_movie_genero(self, v: str):
+        self.admin_movie_genero = v
+
+    def set_admin_movie_clasificacion(self, v: str):
+        self.admin_movie_clasificacion = v
+
+    def set_admin_movie_duracion(self, v: str):
+        self.admin_movie_duracion = v
+
+    def set_admin_movie_poster_url(self, v: str):
+        self.admin_movie_poster_url = v
+
+    def set_admin_movie_estado(self, v: str):
+        self.admin_movie_estado = v
+
+    def set_admin_movie_fecha_estreno(self, v: str):
+        self.admin_movie_fecha_estreno = v
+
+    def update_admin_pelicula(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para modificar películas."
+            return
+
+        if self.admin_edit_movie_id <= 0:
+            self.admin_message = "Selecciona una película para editar."
+            return
+
+        if not self.admin_movie_titulo:
+            self.admin_message = "El título es obligatorio."
+            return
+
+        try:
+            duracion = int(self.admin_movie_duracion) if self.admin_movie_duracion else 0
+
+            response = httpx.put(
+                f"{API_BASE_URL}/admin/peliculas/{self.admin_edit_movie_id}",
+                json={
+                    "titulo": self.admin_movie_titulo,
+                    "sinopsis": self.admin_movie_sinopsis,
+                    "genero": self.admin_movie_genero,
+                    "clasificacion": self.admin_movie_clasificacion,
+                    "duracion_minutos": duracion,
+                    "poster_url": self.admin_movie_poster_url,
+                    "estado": self.admin_movie_estado,
+                    "fecha_estreno": self.admin_movie_fecha_estreno,
+                    "activa": self.admin_movie_estado != "inactiva",
+                },
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo actualizar la película.")
+                return
+
+            self.admin_message = data.get("mensaje", "Película actualizada correctamente.")
+            self.clear_admin_pelicula_form()
+            self.load_admin_peliculas()
+
+        except Exception as error:
+            self.admin_message = f"Error conectando con el servidor: {str(error)}"
+
+    def deactivate_admin_pelicula(self, pelicula_id: int):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para desactivar películas."
+            return
+
+        try:
+            response = httpx.delete(
+                f"{API_BASE_URL}/admin/peliculas/{pelicula_id}",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo desactivar la película.")
+                return
+
+            self.admin_message = data.get("mensaje", "Película desactivada correctamente.")
+            self.load_admin_peliculas()
 
         except Exception as error:
             self.admin_message = f"Error conectando con el servidor: {str(error)}"
