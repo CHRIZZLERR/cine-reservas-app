@@ -15,6 +15,7 @@ from frontend.pages.admin_reservas import admin_reservas_page
 from frontend.pages.admin_peliculas import admin_peliculas_page
 from frontend.pages.admin_tmdb import admin_tmdb_page
 from frontend.pages.admin_funciones import admin_funciones_page
+from frontend.pages.admin_sucursales import admin_sucursales_page
 
 from frontend.state import State
 
@@ -109,3 +110,4 @@ app.add_page(admin_reservas_page, route="/admin/reservas", title=f"{APP_NAME} | 
 app.add_page(admin_peliculas_page, route="/admin/peliculas", title=f"{APP_NAME} | Películas")
 app.add_page(admin_tmdb_page, route="/admin/tmdb", title=f"{APP_NAME} | Importar TMDB")
 app.add_page(admin_funciones_page, route="/admin/funciones", title=f"{APP_NAME} | Funciones")
+app.add_page(admin_sucursales_page, route="/admin/sucursales", title=f"{APP_NAME} | Sucursales")

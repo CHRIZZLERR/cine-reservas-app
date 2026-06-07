@@ -63,6 +63,16 @@ class State(rx.State):
     admin_funcion_precio: str = ""
 
     # =====================================================
+    # ADMIN / SUCURSALES FORM
+    # =====================================================
+
+    admin_edit_sucursal_id: int = 0
+    admin_sucursal_nombre: str = ""
+    admin_sucursal_direccion: str = ""
+    admin_sucursal_ciudad: str = ""
+    admin_sucursal_activa: bool = True
+
+    # =====================================================
     # ADMIN / TMDB
     # =====================================================
 
@@ -933,7 +943,7 @@ class State(rx.State):
         except Exception as error:
             self.admin_message = f"Error conectando con el servidor: {str(error)}"
 
-        # =====================================================
+    # =====================================================
     # ADMIN / FUNCIONES
     # =====================================================
 
@@ -993,7 +1003,6 @@ class State(rx.State):
                 for funcion in data
             ]
 
-            # Ordenar de más nueva a más vieja para que las funciones recién creadas salgan arriba.
             funciones_limpias.sort(key=lambda f: int(f.get("id", 0)), reverse=True)
 
             self.admin_funciones = funciones_limpias
@@ -1027,6 +1036,8 @@ class State(rx.State):
                         "activa": bool(sucursal.get("activa", False)),
                     }
                 )
+
+            sucursales_limpias.sort(key=lambda s: int(s.get("id", 0)), reverse=True)
 
             self.admin_sucursales = sucursales_limpias
 
@@ -1162,6 +1173,143 @@ class State(rx.State):
 
         except Exception as error:
             self.admin_message = f"Error eliminando función: {str(error)}"
+
+    # =====================================================
+    # ADMIN / SUCURSALES
+    # =====================================================
+
+    @rx.var
+    def total_sucursales_activas(self) -> int:
+        return len([s for s in self.admin_sucursales if s.get("activa")])
+
+    @rx.var
+    def total_sucursales_inactivas(self) -> int:
+        return len([s for s in self.admin_sucursales if not s.get("activa")])
+
+    def load_admin_sucursales_page(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para ver sucursales."
+            return
+
+        self.load_admin_sucursales()
+
+    def set_admin_sucursal_nombre(self, v: str):
+        self.admin_sucursal_nombre = v
+
+    def set_admin_sucursal_direccion(self, v: str):
+        self.admin_sucursal_direccion = v
+
+    def set_admin_sucursal_ciudad(self, v: str):
+        self.admin_sucursal_ciudad = v
+
+    def clear_admin_sucursal_form(self):
+        self.admin_edit_sucursal_id = 0
+        self.admin_sucursal_nombre = ""
+        self.admin_sucursal_direccion = ""
+        self.admin_sucursal_ciudad = ""
+        self.admin_sucursal_activa = True
+
+    def select_admin_sucursal(self, sucursal_id: int):
+        self.admin_message = ""
+
+        for sucursal in self.admin_sucursales:
+            if int(sucursal.get("id", 0)) == sucursal_id:
+                self.admin_edit_sucursal_id = sucursal_id
+                self.admin_sucursal_nombre = str(sucursal.get("nombre", ""))
+                self.admin_sucursal_direccion = str(sucursal.get("direccion", ""))
+                self.admin_sucursal_ciudad = str(sucursal.get("ciudad", ""))
+                self.admin_sucursal_activa = bool(sucursal.get("activa", True))
+
+                self.admin_message = f"Editando sucursal #{sucursal_id}. Modifica los datos arriba y guarda los cambios."
+
+                return rx.call_script("window.scrollTo({ top: 0, behavior: 'smooth' });")
+
+        self.admin_message = "No se encontró la sucursal seleccionada."
+
+    def save_admin_sucursal(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para guardar sucursales."
+            return
+
+        if (
+            not self.admin_sucursal_nombre.strip()
+            or not self.admin_sucursal_direccion.strip()
+            or not self.admin_sucursal_ciudad.strip()
+        ):
+            self.admin_message = "Completa nombre, dirección y ciudad."
+            return
+
+        payload_create = {
+            "nombre": self.admin_sucursal_nombre.strip(),
+            "direccion": self.admin_sucursal_direccion.strip(),
+            "ciudad": self.admin_sucursal_ciudad.strip(),
+        }
+
+        payload_update = {
+            "nombre": self.admin_sucursal_nombre.strip(),
+            "direccion": self.admin_sucursal_direccion.strip(),
+            "ciudad": self.admin_sucursal_ciudad.strip(),
+            "activa": self.admin_sucursal_activa,
+        }
+
+        try:
+            if self.admin_edit_sucursal_id > 0:
+                response = httpx.put(
+                    f"{API_BASE_URL}/admin/sucursales/{self.admin_edit_sucursal_id}",
+                    json=payload_update,
+                    timeout=10,
+                )
+            else:
+                response = httpx.post(
+                    f"{API_BASE_URL}/admin/sucursales",
+                    json=payload_create,
+                    timeout=10,
+                )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo guardar la sucursal.")
+                return
+
+            self.admin_message = data.get("mensaje", "Sucursal guardada correctamente.")
+            self.clear_admin_sucursal_form()
+            self.load_admin_sucursales()
+
+            return rx.call_script("window.scrollTo({ top: 0, behavior: 'smooth' });")
+
+        except Exception as error:
+            self.admin_message = f"Error guardando sucursal: {str(error)}"
+
+    def toggle_admin_sucursal_status(self, sucursal_id: int):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para cambiar el estado de sucursales."
+            return
+
+        try:
+            response = httpx.delete(
+                f"{API_BASE_URL}/admin/sucursales/{sucursal_id}",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo cambiar el estado de la sucursal.")
+                return
+
+            self.admin_message = data.get("mensaje", "Estado de sucursal actualizado correctamente.")
+            self.clear_admin_sucursal_form()
+            self.load_admin_sucursales()
+
+        except Exception as error:
+            self.admin_message = f"Error cambiando estado de sucursal: {str(error)}"
 
     # =====================================================
     # ADMIN / TMDB
