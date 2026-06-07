@@ -10,6 +10,7 @@ from frontend.pages.reserva import booking_page
 from frontend.pages.auth import auth_page
 from frontend.pages.admin import admin_page
 from frontend.pages.admin_usuarios import admin_usuarios_page
+from frontend.pages.admin_reservas import admin_reservas_page
 from frontend.state import State
 
 
@@ -98,3 +99,4 @@ app.add_page(booking_page, route="/reservar", title=f"{APP_NAME} | Reservar")
 app.add_page(auth_page, route="/auth", title=f"{APP_NAME} | Iniciar sesión")
 app.add_page(admin_page, route="/admin", title=f"{APP_NAME} | Panel Admin")
 app.add_page(admin_usuarios_page, route="/admin/usuarios", title=f"{APP_NAME} | Usuarios")
+app.add_page(admin_reservas_page, route="/admin/reservas", title=f"{APP_NAME} | Reservas")

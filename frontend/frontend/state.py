@@ -31,6 +31,7 @@ class State(rx.State):
 
     admin_message: str = ""
     admin_usuarios: list[dict] = []
+    admin_reservas: list[dict] = []
 
     # =====================================================
     # LOGIN / USUARIO
@@ -561,6 +562,117 @@ class State(rx.State):
 
             self.admin_message = data.get("mensaje", "Usuario actualizado correctamente.")
             self.load_admin_usuarios()
+
+        except Exception as error:
+            self.admin_message = f"Error conectando con el servidor: {str(error)}"
+
+    # =====================================================
+    # ADMIN / RESERVAS
+    # =====================================================
+
+    @rx.var
+    def total_admin_reservas(self) -> int:
+        return len(self.admin_reservas)
+
+    @rx.var
+    def total_reservas_pendientes(self) -> int:
+        return len([r for r in self.admin_reservas if r.get("estado") == "pendiente"])
+
+    @rx.var
+    def total_reservas_confirmadas(self) -> int:
+        return len([r for r in self.admin_reservas if r.get("estado") == "confirmada"])
+
+    @rx.var
+    def total_reservas_canceladas(self) -> int:
+        return len([r for r in self.admin_reservas if r.get("estado") == "cancelada"])
+
+    def load_admin_reservas(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para ver reservas."
+            return
+
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/reservas",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudieron cargar las reservas.")
+                self.admin_reservas = []
+                return
+
+            reservas_limpias = []
+
+            for reserva in data:
+                asientos = reserva.get("asientos", [])
+                if isinstance(asientos, list):
+                    asientos_texto = ", ".join([str(a) for a in asientos]) if asientos else "Ninguno"
+                else:
+                    asientos_texto = str(asientos)
+
+                total = float(reserva.get("total", 0))
+
+                reservas_limpias.append(
+                    {
+                        "id": int(reserva.get("id", 0)),
+                        "codigo_reserva": str(reserva.get("codigo_reserva", "")),
+                        "nombre_cliente": str(reserva.get("nombre_cliente", "")),
+                        "email_cliente": str(reserva.get("email_cliente", "")),
+                        "telefono_cliente": str(reserva.get("telefono_cliente", "")),
+                        "cliente_texto": f"{reserva.get('nombre_cliente', '')} · {reserva.get('email_cliente', '')}",
+                        "cantidad_asientos": int(reserva.get("cantidad_asientos", 0)),
+                        "total": total,
+                        "total_texto": f"RD${total:,.0f}",
+                        "metodo_pago": str(reserva.get("metodo_pago", "Pago en taquilla")),
+                        "estado": str(reserva.get("estado", "pendiente")),
+                        "fecha_reserva": str(reserva.get("fecha_reserva", "")),
+                        "fecha": str(reserva.get("fecha", "")),
+                        "hora": str(reserva.get("hora", "")),
+                        "sala": str(reserva.get("sala", "")),
+                        "pelicula": str(reserva.get("pelicula", "")),
+                        "genero": str(reserva.get("genero", "")),
+                        "clasificacion": str(reserva.get("clasificacion", "")),
+                        "sucursal": str(reserva.get("sucursal", "")),
+                        "direccion_sucursal": str(reserva.get("direccion_sucursal", "")),
+                        "ciudad": str(reserva.get("ciudad", "")),
+                        "asientos": asientos,
+                        "asientos_texto": asientos_texto,
+                    }
+                )
+
+            self.admin_reservas = reservas_limpias
+
+        except Exception as error:
+            self.admin_message = f"Error conectando con el servidor: {str(error)}"
+            self.admin_reservas = []
+
+    def update_reserva_estado(self, reserva_id: int, estado: str):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para modificar reservas."
+            return
+
+        try:
+            response = httpx.put(
+                f"{API_BASE_URL}/admin/reservas/{reserva_id}/estado",
+                json={"estado": estado},
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo actualizar la reserva.")
+                return
+
+            self.admin_message = data.get("mensaje", "Estado de reserva actualizado correctamente.")
+            self.load_admin_reservas()
 
         except Exception as error:
             self.admin_message = f"Error conectando con el servidor: {str(error)}"
