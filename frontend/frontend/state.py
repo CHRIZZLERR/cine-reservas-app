@@ -119,6 +119,10 @@ class State(rx.State):
 
     funciones: list[dict] = []
 
+    public_movies: list[dict] = []
+    public_movies_loaded: bool = False
+    public_movies_message: str = ""
+
     seats: list[dict] = INIT_SEATS
     selected_seats: list[str] = []
     food_cart: list[dict] = FOOD_MENU
@@ -132,19 +136,194 @@ class State(rx.State):
     reservation_message: str = ""
 
     # =====================================================
-    # PELÍCULAS
+    # HELPERS
     # =====================================================
+
+    def safe_int(self, value, default: int = 0) -> int:
+        try:
+            return int(float(value))
+        except Exception:
+            return default
+
+    def convertir_duracion_minutos(self, value) -> int:
+        try:
+            return int(float(value))
+        except Exception:
+            texto = str(value).lower().strip()
+
+            horas = 0
+            minutos = 0
+
+            if "h" in texto:
+                partes = texto.split("h")
+
+                try:
+                    horas = int(partes[0].strip())
+                except Exception:
+                    horas = 0
+
+                if len(partes) > 1:
+                    minutos_texto = (
+                        partes[1]
+                        .replace("min", "")
+                        .replace("m", "")
+                        .strip()
+                    )
+
+                    try:
+                        minutos = int(minutos_texto)
+                    except Exception:
+                        minutos = 0
+
+                return horas * 60 + minutos
+
+            if "min" in texto or "m" in texto:
+                minutos_texto = texto.replace("min", "").replace("m", "").strip()
+
+                try:
+                    return int(minutos_texto)
+                except Exception:
+                    return 0
+
+            return 0
+
+    # =====================================================
+    # PELÍCULAS PÚBLICAS DESDE API
+    # =====================================================
+
+    def limpiar_pelicula_publica(self, pelicula: dict) -> dict:
+        poster_url = str(
+            pelicula.get("poster_url")
+            or pelicula.get("poster")
+            or pelicula.get("imagen")
+            or pelicula.get("portada")
+            or ""
+        )
+
+        if not poster_url:
+            poster_url = "https://via.placeholder.com/400x600/0f1320/ffffff?text=JC+Cinemas"
+
+        backdrop_url = str(
+            pelicula.get("backdrop_url")
+            or pelicula.get("fondo")
+            or pelicula.get("banner")
+            or poster_url
+        )
+
+        trailer = str(pelicula.get("trailer") or "")
+
+        estado = str(
+            pelicula.get("estado")
+            or pelicula.get("tab")
+            or "cartelera"
+        ).lower()
+
+        if estado not in ["cartelera", "proximamente", "inactiva"]:
+            estado = "cartelera"
+
+        titulo = str(pelicula.get("titulo") or pelicula.get("title") or "Sin título")
+        sinopsis = str(pelicula.get("sinopsis") or pelicula.get("descripcion") or "")
+
+        duracion_raw = pelicula.get("duracion_minutos") or pelicula.get("duracion") or 0
+        duracion = self.convertir_duracion_minutos(duracion_raw)
+
+        precio_raw = pelicula.get("precio_regular", 500)
+        precio_regular = self.safe_int(precio_raw, 500)
+
+        return {
+            "id": self.safe_int(pelicula.get("id", 0), 0),
+            "tmdb_id": self.safe_int(pelicula.get("tmdb_id") or 0, 0),
+            "titulo": titulo,
+            "title": titulo,
+            "sinopsis": sinopsis,
+            "descripcion": sinopsis,
+            "resumen": sinopsis,
+            "genero": str(pelicula.get("genero") or "No disponible"),
+            "clasificacion": str(pelicula.get("clasificacion") or "S/R"),
+            "duracion_minutos": duracion,
+            "duracion": duracion,
+            "duracion_texto": f"{duracion} min" if duracion > 0 else str(duracion_raw),
+            "poster_url": poster_url,
+            "poster": poster_url,
+            "imagen": poster_url,
+            "portada": poster_url,
+            "backdrop_url": backdrop_url,
+            "fondo": backdrop_url,
+            "trailer": trailer,
+            "director": str(pelicula.get("director") or ""),
+            "reparto": str(pelicula.get("reparto") or ""),
+            "rating": str(pelicula.get("rating") or "0"),
+            "estado": estado,
+            "tab": estado,
+            "fecha_estreno": str(pelicula.get("fecha_estreno") or ""),
+            "activa": bool(pelicula.get("activa", True)),
+            "precio_regular": precio_regular,
+        }
+
+    def load_public_movies(self):
+        self.public_movies_message = ""
+
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/peliculas",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.public_movies_message = "No se pudieron cargar las películas desde la API."
+                self.public_movies = [self.limpiar_pelicula_publica(m) for m in MOVIES]
+                self.public_movies_loaded = True
+                return
+
+            peliculas_limpias = []
+
+            for pelicula in data:
+                limpia = self.limpiar_pelicula_publica(pelicula)
+
+                if limpia["activa"] and limpia["estado"] != "inactiva":
+                    peliculas_limpias.append(limpia)
+
+            if len(peliculas_limpias) == 0:
+                self.public_movies = [self.limpiar_pelicula_publica(m) for m in MOVIES]
+            else:
+                self.public_movies = peliculas_limpias
+
+            self.public_movies_loaded = True
+
+        except Exception as error:
+            self.public_movies_message = f"Error cargando cartelera desde API: {str(error)}"
+            self.public_movies = [self.limpiar_pelicula_publica(m) for m in MOVIES]
+            self.public_movies_loaded = True
+
+    @rx.var
+    def all_movies_public(self) -> list[dict]:
+        if self.public_movies:
+            return self.public_movies
+
+        return [self.limpiar_pelicula_publica(m) for m in MOVIES]
 
     @rx.var
     def hero_movie(self) -> dict:
-        return HERO_SLIDES[self.hero_index] if HERO_SLIDES else MOVIES[0]
+        peliculas = self.all_movies_public
+
+        if peliculas:
+            index = self.hero_index % len(peliculas)
+            return peliculas[index]
+
+        return self.limpiar_pelicula_publica(MOVIES[0])
 
     @rx.var
     def current_movie(self) -> dict:
-        for movie in MOVIES:
-            if movie["id"] == self.movie_id:
+        for movie in self.all_movies_public:
+            if int(movie.get("id", 0)) == int(self.movie_id):
                 return movie
-        return MOVIES[0]
+
+        if self.all_movies_public:
+            return self.all_movies_public[0]
+
+        return self.limpiar_pelicula_publica(MOVIES[0])
 
     @rx.var
     def trailer_url(self) -> str:
@@ -169,7 +348,11 @@ class State(rx.State):
     @rx.var
     def cartelera_movies(self) -> list[dict]:
         q = self.search_text.strip().lower()
-        movies = [m for m in MOVIES if m.get("tab") == "cartelera"]
+
+        movies = [
+            m for m in self.all_movies_public
+            if m.get("estado") == "cartelera"
+        ]
 
         if not q:
             return movies
@@ -184,7 +367,11 @@ class State(rx.State):
     @rx.var
     def pronto_movies(self) -> list[dict]:
         q = self.search_text.strip().lower()
-        movies = [m for m in MOVIES if m.get("tab") == "proximamente"]
+
+        movies = [
+            m for m in self.all_movies_public
+            if m.get("estado") == "proximamente"
+        ]
 
         if not q:
             return movies
@@ -1580,10 +1767,20 @@ class State(rx.State):
     # =====================================================
 
     def next_hero(self):
-        self.hero_index = (self.hero_index + 1) % len(HERO_SLIDES)
+        total = len(self.all_movies_public)
+        if total <= 0:
+            total = len(HERO_SLIDES)
+
+        if total > 0:
+            self.hero_index = (self.hero_index + 1) % total
 
     def prev_hero(self):
-        self.hero_index = (self.hero_index - 1) % len(HERO_SLIDES)
+        total = len(self.all_movies_public)
+        if total <= 0:
+            total = len(HERO_SLIDES)
+
+        if total > 0:
+            self.hero_index = (self.hero_index - 1) % total
 
     def go_to_slide(self, idx: int):
         self.hero_index = idx
@@ -1614,7 +1811,7 @@ class State(rx.State):
         return rx.redirect("/pelicula")
 
     def hero_details(self):
-        self.movie_id = self.hero_movie["id"]
+        self.movie_id = int(self.hero_movie.get("id", 1))
         self.show_trailer = False
         self.selected_showtime = ""
         self.selected_funcion_id = 0
@@ -1624,7 +1821,7 @@ class State(rx.State):
         return rx.redirect("/pelicula")
 
     def hero_trailer(self):
-        self.movie_id = self.hero_movie["id"]
+        self.movie_id = int(self.hero_movie.get("id", 1))
         self.show_trailer = True
         self.selected_showtime = ""
         self.selected_funcion_id = 0

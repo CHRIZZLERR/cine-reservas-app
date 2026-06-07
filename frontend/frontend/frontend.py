@@ -56,6 +56,20 @@ def movie_grid(title: str, movies_var, subtitle: str, active: str) -> rx.Compone
             rx.text(subtitle, class_name="section-kicker"),
             rx.heading(title, class_name="page-title"),
             rx.cond(
+                State.public_movies_message != "",
+                rx.box(
+                    State.public_movies_message,
+                    color="#FFD60A",
+                    background="rgba(255,214,10,.10)",
+                    border="1px solid rgba(255,214,10,.25)",
+                    padding="12px 16px",
+                    border_radius="14px",
+                    margin_bottom="18px",
+                    font_weight="800",
+                ),
+                rx.fragment(),
+            ),
+            rx.cond(
                 active == "cartelera",
                 location_filter(),
                 rx.fragment(),
@@ -73,6 +87,7 @@ def movie_grid(title: str, movies_var, subtitle: str, active: str) -> rx.Compone
         search_overlay(),
         side_menu(),
         class_name="page",
+        on_mount=State.load_public_movies,
     )
 
 
