@@ -5,6 +5,7 @@ from frontend.components.movie_card import movie_card
 from frontend.components.navbar import navbar, search_overlay, side_menu
 from frontend.components.footer import locations_page, site_footer
 from frontend.components.movie_detail import detail_page
+
 from frontend.pages.home import index
 from frontend.pages.reserva import booking_page
 from frontend.pages.auth import auth_page
@@ -13,6 +14,8 @@ from frontend.pages.admin_usuarios import admin_usuarios_page
 from frontend.pages.admin_reservas import admin_reservas_page
 from frontend.pages.admin_peliculas import admin_peliculas_page
 from frontend.pages.admin_tmdb import admin_tmdb_page
+from frontend.pages.admin_funciones import admin_funciones_page
+
 from frontend.state import State
 
 
@@ -99,8 +102,10 @@ app.add_page(locations_page, route="/ubicaciones", title=f"{APP_NAME} | Ubicacio
 app.add_page(detail_page, route="/pelicula", title=f"{APP_NAME} | Detalle")
 app.add_page(booking_page, route="/reservar", title=f"{APP_NAME} | Reservar")
 app.add_page(auth_page, route="/auth", title=f"{APP_NAME} | Iniciar sesión")
+
 app.add_page(admin_page, route="/admin", title=f"{APP_NAME} | Panel Admin")
 app.add_page(admin_usuarios_page, route="/admin/usuarios", title=f"{APP_NAME} | Usuarios")
 app.add_page(admin_reservas_page, route="/admin/reservas", title=f"{APP_NAME} | Reservas")
 app.add_page(admin_peliculas_page, route="/admin/peliculas", title=f"{APP_NAME} | Películas")
 app.add_page(admin_tmdb_page, route="/admin/tmdb", title=f"{APP_NAME} | Importar TMDB")
+app.add_page(admin_funciones_page, route="/admin/funciones", title=f"{APP_NAME} | Funciones")

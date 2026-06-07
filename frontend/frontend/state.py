@@ -33,6 +33,12 @@ class State(rx.State):
     admin_usuarios: list[dict] = []
     admin_reservas: list[dict] = []
     admin_peliculas: list[dict] = []
+    admin_funciones: list[dict] = []
+    admin_sucursales: list[dict] = []
+
+    # =====================================================
+    # ADMIN / PELÍCULAS FORM
+    # =====================================================
 
     admin_edit_movie_id: int = 0
     admin_movie_titulo: str = ""
@@ -43,6 +49,18 @@ class State(rx.State):
     admin_movie_poster_url: str = ""
     admin_movie_estado: str = "cartelera"
     admin_movie_fecha_estreno: str = ""
+
+    # =====================================================
+    # ADMIN / FUNCIONES FORM
+    # =====================================================
+
+    admin_edit_funcion_id: int = 0
+    admin_funcion_pelicula_id: str = ""
+    admin_funcion_sucursal_id: str = ""
+    admin_funcion_fecha: str = ""
+    admin_funcion_hora: str = ""
+    admin_funcion_sala: str = ""
+    admin_funcion_precio: str = ""
 
     # =====================================================
     # ADMIN / TMDB
@@ -169,7 +187,7 @@ class State(rx.State):
         ]
 
     # =====================================================
-    # FUNCIONES / HORARIOS
+    # FUNCIONES / HORARIOS PÚBLICOS
     # =====================================================
 
     @rx.var
@@ -914,6 +932,236 @@ class State(rx.State):
 
         except Exception as error:
             self.admin_message = f"Error conectando con el servidor: {str(error)}"
+
+        # =====================================================
+    # ADMIN / FUNCIONES
+    # =====================================================
+
+    @rx.var
+    def total_admin_funciones(self) -> int:
+        return len(self.admin_funciones)
+
+    @rx.var
+    def total_admin_sucursales(self) -> int:
+        return len(self.admin_sucursales)
+
+    def limpiar_funcion_admin(self, funcion: dict) -> dict:
+        precio = float(funcion.get("precio") or 0)
+
+        return {
+            "id": int(funcion.get("id", 0)),
+            "pelicula_id": int(funcion.get("pelicula_id", 0)),
+            "sucursal_id": int(funcion.get("sucursal_id", 0)),
+            "pelicula": str(funcion.get("pelicula") or funcion.get("titulo") or "Sin película"),
+            "sucursal": str(funcion.get("sucursal") or funcion.get("nombre_sucursal") or "Sin sucursal"),
+            "fecha": str(funcion.get("fecha") or ""),
+            "hora": str(funcion.get("hora") or ""),
+            "sala": str(funcion.get("sala") or ""),
+            "precio": precio,
+            "precio_texto": f"RD${precio:,.0f}",
+        }
+
+    def load_admin_funciones_page(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para ver funciones."
+            return
+
+        self.load_admin_peliculas()
+        self.load_admin_sucursales()
+        self.load_admin_funciones()
+
+    def load_admin_funciones(self):
+        self.admin_message = ""
+
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/admin/funciones",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudieron cargar las funciones.")
+                self.admin_funciones = []
+                return
+
+            funciones_limpias = [
+                self.limpiar_funcion_admin(funcion)
+                for funcion in data
+            ]
+
+            # Ordenar de más nueva a más vieja para que las funciones recién creadas salgan arriba.
+            funciones_limpias.sort(key=lambda f: int(f.get("id", 0)), reverse=True)
+
+            self.admin_funciones = funciones_limpias
+
+        except Exception as error:
+            self.admin_message = f"Error cargando funciones: {str(error)}"
+            self.admin_funciones = []
+
+    def load_admin_sucursales(self):
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/admin/sucursales",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_sucursales = []
+                return
+
+            sucursales_limpias = []
+
+            for sucursal in data:
+                sucursales_limpias.append(
+                    {
+                        "id": int(sucursal.get("id", 0)),
+                        "nombre": str(sucursal.get("nombre") or ""),
+                        "direccion": str(sucursal.get("direccion") or ""),
+                        "ciudad": str(sucursal.get("ciudad") or ""),
+                        "activa": bool(sucursal.get("activa", False)),
+                    }
+                )
+
+            self.admin_sucursales = sucursales_limpias
+
+        except Exception:
+            self.admin_sucursales = []
+
+    def set_admin_funcion_pelicula_id(self, v: str):
+        self.admin_funcion_pelicula_id = v
+
+    def set_admin_funcion_sucursal_id(self, v: str):
+        self.admin_funcion_sucursal_id = v
+
+    def set_admin_funcion_fecha(self, v: str):
+        self.admin_funcion_fecha = v
+
+    def set_admin_funcion_hora(self, v: str):
+        self.admin_funcion_hora = v
+
+    def set_admin_funcion_sala(self, v: str):
+        self.admin_funcion_sala = v
+
+    def set_admin_funcion_precio(self, v: str):
+        self.admin_funcion_precio = v
+
+    def clear_admin_funcion_form(self):
+        self.admin_edit_funcion_id = 0
+        self.admin_funcion_pelicula_id = ""
+        self.admin_funcion_sucursal_id = ""
+        self.admin_funcion_fecha = ""
+        self.admin_funcion_hora = ""
+        self.admin_funcion_sala = ""
+        self.admin_funcion_precio = ""
+
+    def select_admin_funcion(self, funcion_id: int):
+        self.admin_message = ""
+
+        for funcion in self.admin_funciones:
+            if int(funcion.get("id", 0)) == funcion_id:
+                self.admin_edit_funcion_id = funcion_id
+                self.admin_funcion_pelicula_id = str(funcion.get("pelicula_id", ""))
+                self.admin_funcion_sucursal_id = str(funcion.get("sucursal_id", ""))
+                self.admin_funcion_fecha = str(funcion.get("fecha", ""))
+                self.admin_funcion_hora = str(funcion.get("hora", ""))
+                self.admin_funcion_sala = str(funcion.get("sala", ""))
+                self.admin_funcion_precio = str(int(float(funcion.get("precio", 0))))
+
+                self.admin_message = f"Editando función #{funcion_id}. Modifica los datos arriba y guarda los cambios."
+
+                return rx.call_script("window.scrollTo({ top: 0, behavior: 'smooth' });")
+
+        self.admin_message = "No se encontró la función seleccionada."
+
+    def save_admin_funcion(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para guardar funciones."
+            return
+
+        if (
+            not self.admin_funcion_pelicula_id
+            or not self.admin_funcion_sucursal_id
+            or not self.admin_funcion_fecha
+            or not self.admin_funcion_hora
+            or not self.admin_funcion_sala
+            or not self.admin_funcion_precio
+        ):
+            self.admin_message = "Completa todos los campos de la función."
+            return
+
+        try:
+            payload = {
+                "pelicula_id": int(self.admin_funcion_pelicula_id),
+                "sucursal_id": int(self.admin_funcion_sucursal_id),
+                "fecha": self.admin_funcion_fecha,
+                "hora": self.admin_funcion_hora,
+                "sala": self.admin_funcion_sala,
+                "precio": float(self.admin_funcion_precio),
+            }
+
+            if self.admin_edit_funcion_id > 0:
+                response = httpx.put(
+                    f"{API_BASE_URL}/admin/funciones/{self.admin_edit_funcion_id}",
+                    json=payload,
+                    timeout=10,
+                )
+            else:
+                response = httpx.post(
+                    f"{API_BASE_URL}/admin/funciones",
+                    json=payload,
+                    timeout=10,
+                )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo guardar la función.")
+                return
+
+            self.admin_message = data.get("mensaje", "Función guardada correctamente.")
+            self.clear_admin_funcion_form()
+            self.load_admin_funciones()
+
+            return rx.call_script("window.scrollTo({ top: 0, behavior: 'smooth' });")
+
+        except ValueError:
+            self.admin_message = "Los campos ID y precio deben ser números válidos."
+
+        except Exception as error:
+            self.admin_message = f"Error guardando función: {str(error)}"
+
+    def delete_admin_funcion(self, funcion_id: int):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para eliminar funciones."
+            return
+
+        try:
+            response = httpx.delete(
+                f"{API_BASE_URL}/admin/funciones/{funcion_id}",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo eliminar la función.")
+                return
+
+            self.admin_message = data.get("mensaje", "Función eliminada correctamente.")
+            self.load_admin_funciones()
+
+        except Exception as error:
+            self.admin_message = f"Error eliminando función: {str(error)}"
 
     # =====================================================
     # ADMIN / TMDB
