@@ -45,6 +45,22 @@ class State(rx.State):
     admin_movie_fecha_estreno: str = ""
 
     # =====================================================
+    # ADMIN / TMDB
+    # =====================================================
+
+    tmdb_query: str = ""
+    tmdb_results: list[dict] = []
+
+    tmdb_detail_loaded: bool = False
+    tmdb_detail_id_int: int = 0
+    tmdb_detail_id: str = ""
+    tmdb_detail_title: str = ""
+    tmdb_detail_overview: str = ""
+    tmdb_detail_poster: str = ""
+    tmdb_detail_release_date: str = ""
+    tmdb_detail_rating: str = ""
+
+    # =====================================================
     # LOGIN / USUARIO
     # =====================================================
 
@@ -898,6 +914,270 @@ class State(rx.State):
 
         except Exception as error:
             self.admin_message = f"Error conectando con el servidor: {str(error)}"
+
+    # =====================================================
+    # ADMIN / TMDB
+    # =====================================================
+
+    @rx.var
+    def tmdb_results_count(self) -> int:
+        return len(self.tmdb_results)
+
+    def set_tmdb_query(self, v: str):
+        self.tmdb_query = v
+
+    def limpiar_resultado_tmdb(self, movie) -> dict:
+        if not isinstance(movie, dict):
+            return {
+                "id": 0,
+                "title": "Resultado inválido",
+                "overview": "TMDB devolvió un formato no compatible.",
+                "overview_short": "TMDB devolvió un formato no compatible.",
+                "poster_url": "https://via.placeholder.com/400x600/0f1320/ffffff?text=TMDB",
+                "release_date": "",
+                "year": "Sin fecha",
+                "rating": 0.0,
+                "rating_text": "⭐ 0.0",
+            }
+
+        poster_url = str(
+            movie.get("poster_url")
+            or movie.get("poster")
+            or movie.get("poster_completo")
+            or ""
+        )
+
+        if not poster_url:
+            poster_path = str(movie.get("poster_path") or "")
+            if poster_path:
+                poster_url = f"https://image.tmdb.org/t/p/w500{poster_path}"
+
+        if not poster_url:
+            poster_url = "https://via.placeholder.com/400x600/0f1320/ffffff?text=TMDB"
+
+        title = str(
+            movie.get("title")
+            or movie.get("titulo")
+            or movie.get("name")
+            or movie.get("nombre")
+            or "Sin título"
+        )
+
+        overview = str(
+            movie.get("overview")
+            or movie.get("sinopsis")
+            or movie.get("descripcion")
+            or "Sin descripción disponible."
+        )
+
+        release_date = str(
+            movie.get("release_date")
+            or movie.get("fecha_estreno")
+            or movie.get("estreno")
+            or ""
+        )
+
+        year = "Sin fecha"
+        if len(release_date) >= 4:
+            year = release_date[:4]
+
+        rating = movie.get("vote_average", movie.get("rating", movie.get("calificacion", 0)))
+
+        try:
+            rating_float = float(rating)
+        except Exception:
+            rating_float = 0.0
+
+        return {
+            "id": int(movie.get("id", movie.get("tmdb_id", 0)) or 0),
+            "title": title,
+            "overview": overview,
+            "overview_short": overview[:210] + "..." if len(overview) > 210 else overview,
+            "poster_url": poster_url,
+            "release_date": release_date,
+            "year": year,
+            "rating": rating_float,
+            "rating_text": f"⭐ {rating_float:.1f}",
+        }
+
+    def extraer_resultados_tmdb(self, data) -> list:
+        if isinstance(data, list):
+            return data
+
+        if isinstance(data, dict):
+            if isinstance(data.get("results"), list):
+                return data["results"]
+
+            if isinstance(data.get("resultados"), list):
+                return data["resultados"]
+
+            if isinstance(data.get("peliculas"), list):
+                return data["peliculas"]
+
+            if isinstance(data.get("data"), list):
+                return data["data"]
+
+            if isinstance(data.get("movies"), list):
+                return data["movies"]
+
+        return []
+
+    def search_tmdb_movies(self):
+        self.admin_message = ""
+        self.tmdb_detail_loaded = False
+        self.tmdb_results = []
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para buscar en TMDB."
+            return
+
+        if not self.tmdb_query.strip():
+            self.admin_message = "Escribe el nombre de una película."
+            return
+
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/tmdb/buscar",
+                params={
+                    "query": self.tmdb_query.strip(),
+                    "language": "es-ES",
+                },
+                timeout=15,
+            )
+
+            try:
+                data = response.json()
+            except Exception:
+                self.admin_message = "TMDB devolvió una respuesta que no es JSON."
+                self.tmdb_results = []
+                return
+
+            if response.status_code != 200:
+                if isinstance(data, dict):
+                    self.admin_message = data.get("detail", "No se pudo consultar TMDB.")
+                else:
+                    self.admin_message = "No se pudo consultar TMDB."
+                self.tmdb_results = []
+                return
+
+            results = self.extraer_resultados_tmdb(data)
+
+            resultados_limpios = []
+
+            for movie in results:
+                limpio = self.limpiar_resultado_tmdb(movie)
+                if limpio["id"] > 0:
+                    resultados_limpios.append(limpio)
+
+            self.tmdb_results = resultados_limpios
+
+            if len(resultados_limpios) == 0:
+                self.admin_message = "No se encontraron resultados para esa búsqueda."
+            else:
+                self.admin_message = f"Se encontraron {len(resultados_limpios)} resultados."
+
+        except Exception as error:
+            self.admin_message = f"Error conectando con TMDB: {str(error)}"
+            self.tmdb_results = []
+
+    def load_tmdb_detail(self, tmdb_id: int):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para ver detalles de TMDB."
+            return
+
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/tmdb/pelicula/{tmdb_id}",
+                timeout=15,
+            )
+
+            try:
+                data = response.json()
+            except Exception:
+                self.admin_message = "TMDB devolvió un detalle que no es JSON."
+                return
+
+            if response.status_code != 200:
+                if isinstance(data, dict):
+                    self.admin_message = data.get("detail", "No se pudo cargar el detalle.")
+                else:
+                    self.admin_message = "No se pudo cargar el detalle."
+                return
+
+            if isinstance(data, dict) and isinstance(data.get("pelicula"), dict):
+                data = data["pelicula"]
+
+            if isinstance(data, dict) and isinstance(data.get("detalle"), dict):
+                data = data["detalle"]
+
+            limpio = self.limpiar_resultado_tmdb(data)
+
+            self.tmdb_detail_loaded = True
+            self.tmdb_detail_id_int = limpio["id"]
+            self.tmdb_detail_id = str(limpio["id"])
+            self.tmdb_detail_title = limpio["title"]
+            self.tmdb_detail_overview = limpio["overview"]
+            self.tmdb_detail_poster = limpio["poster_url"]
+            self.tmdb_detail_release_date = limpio["release_date"]
+            self.tmdb_detail_rating = limpio["rating_text"]
+
+        except Exception as error:
+            self.admin_message = f"Error cargando detalle de TMDB: {str(error)}"
+
+    def clear_tmdb_detail(self):
+        self.tmdb_detail_loaded = False
+        self.tmdb_detail_id_int = 0
+        self.tmdb_detail_id = ""
+        self.tmdb_detail_title = ""
+        self.tmdb_detail_overview = ""
+        self.tmdb_detail_poster = ""
+        self.tmdb_detail_release_date = ""
+        self.tmdb_detail_rating = ""
+
+    def import_tmdb_movie(self, tmdb_id: int):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para importar películas."
+            return
+
+        if int(tmdb_id) <= 0:
+            self.admin_message = "ID de TMDB inválido."
+            return
+
+        try:
+            response = httpx.post(
+                f"{API_BASE_URL}/admin/peliculas/importar-tmdb/{tmdb_id}",
+                timeout=20,
+            )
+
+            try:
+                data = response.json()
+            except Exception:
+                self.admin_message = "El servidor devolvió una respuesta inválida al importar."
+                return
+
+            if response.status_code != 200:
+                if isinstance(data, dict):
+                    self.admin_message = data.get("detail", "No se pudo importar la película.")
+                else:
+                    self.admin_message = "No se pudo importar la película."
+                return
+
+            if isinstance(data, dict):
+                self.admin_message = data.get("mensaje", "Película importada correctamente.")
+            else:
+                self.admin_message = "Película importada correctamente."
+
+            try:
+                self.load_admin_peliculas()
+            except Exception:
+                pass
+
+        except Exception as error:
+            self.admin_message = f"Error importando película desde TMDB: {str(error)}"
 
     # =====================================================
     # HERO / NAVEGACIÓN
