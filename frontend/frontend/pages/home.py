@@ -55,6 +55,12 @@ def home_sections() -> rx.Component:
         ),
     )
 
+def index() -> rx.Component:
+    return rx.box(
+        hero_section(),
+        # demás secciones...
+        on_mount=State.load_public_movies,
+    )
 
 def index() -> rx.Component:
     return rx.box(

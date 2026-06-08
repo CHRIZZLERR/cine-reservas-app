@@ -11,6 +11,7 @@ def movie_card(movie: dict) -> rx.Component:
         rx.box(
             rx.image(
                 src=movie["poster"],
+                alt=movie["titulo"],
                 style={
                     "position": "absolute",
                     "top": "0",

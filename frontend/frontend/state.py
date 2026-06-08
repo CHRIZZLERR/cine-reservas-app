@@ -250,17 +250,21 @@ class State(rx.State):
             "backdrop_url": backdrop_url,
             "fondo": backdrop_url,
             "trailer": trailer,
-            "director": str(pelicula.get("director") or ""),
-            "reparto": str(pelicula.get("reparto") or ""),
             "rating": str(pelicula.get("rating") or "0"),
             "estado": estado,
             "tab": estado,
             "fecha_estreno": str(pelicula.get("fecha_estreno") or ""),
             "activa": bool(pelicula.get("activa", True)),
             "precio_regular": precio_regular,
+            "image": poster_url,
+            "director": str(pelicula.get("director") or "No disponible"),
+            "reparto": str(pelicula.get("reparto") or "No disponible"),
         }
 
     def load_public_movies(self):
+        """Carga todas las películas públicas sin filtrar por sucursal.
+        Usar para Inicio y Próximamente.
+        """
         self.public_movies_message = ""
 
         try:
@@ -273,7 +277,7 @@ class State(rx.State):
 
             if response.status_code != 200:
                 self.public_movies_message = "No se pudieron cargar las películas desde la API."
-                self.public_movies = [self.limpiar_pelicula_publica(m) for m in MOVIES]
+                self.public_movies = []
                 self.public_movies_loaded = True
                 return
 
@@ -285,45 +289,112 @@ class State(rx.State):
                 if limpia["activa"] and limpia["estado"] != "inactiva":
                     peliculas_limpias.append(limpia)
 
-            if len(peliculas_limpias) == 0:
-                self.public_movies = [self.limpiar_pelicula_publica(m) for m in MOVIES]
-            else:
-                self.public_movies = peliculas_limpias
-
+            self.public_movies = peliculas_limpias
             self.public_movies_loaded = True
 
         except Exception as error:
             self.public_movies_message = f"Error cargando cartelera desde API: {str(error)}"
-            self.public_movies = [self.limpiar_pelicula_publica(m) for m in MOVIES]
+            self.public_movies = []
             self.public_movies_loaded = True
 
     @rx.var
     def all_movies_public(self) -> list[dict]:
-        if self.public_movies:
-            return self.public_movies
+        return self.public_movies
+    
+    @rx.var
+    def hero_cartelera_movies(self) -> list[dict]:
+        movies = [
+            movie for movie in self.public_movies
+            if movie.get("estado") == "cartelera"
+        ]
 
-        return [self.limpiar_pelicula_publica(m) for m in MOVIES]
+        return movies[:5]
+
+    def load_public_movies_por_sucursal(self):
+        """Carga películas filtradas por sucursal.
+        Usar solo para Cartelera.
+        """
+        self.public_movies_message = ""
+
+        try:
+            params = {}
+
+            if self.selected_location:
+                params["sucursal"] = self.selected_location
+
+            response = httpx.get(
+                f"{API_BASE_URL}/peliculas",
+                params=params,
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.public_movies_message = "No se pudieron cargar las películas desde la API."
+                self.public_movies = []
+                self.public_movies_loaded = True
+                return
+
+            peliculas_limpias = []
+
+            for pelicula in data:
+                limpia = self.limpiar_pelicula_publica(pelicula)
+
+                if limpia["activa"] and limpia["estado"] != "inactiva":
+                    peliculas_limpias.append(limpia)
+
+            self.public_movies = peliculas_limpias
+            self.public_movies_loaded = True
+
+        except Exception as error:
+            self.public_movies_message = f"Error cargando cartelera desde API: {str(error)}"
+            self.public_movies = []
+            self.public_movies_loaded = True
 
     @rx.var
     def hero_movie(self) -> dict:
-        peliculas = self.all_movies_public
+        peliculas = self.hero_cartelera_movies
 
         if peliculas:
             index = self.hero_index % len(peliculas)
             return peliculas[index]
-
-        return self.limpiar_pelicula_publica(MOVIES[0])
+        return {
+            "id": 0,
+            "titulo": "Cargando películas...",
+            "title": "Cargando películas...",
+            "sinopsis": "Estamos cargando la cartelera desde la API.",
+            "descripcion": "Estamos cargando la cartelera desde la API.",
+            "genero": "",
+            "clasificacion": "",
+            "duracion_minutos": 0,
+            "duracion": 0,
+            "duracion_texto": "",
+            "poster_url": "",
+            "poster": "",
+            "backdrop_url": "",
+            "fondo": "",
+            "trailer": "",
+            "rating": "0",
+            "estado": "cartelera",
+            "fecha_estreno": "",
+            "activa": True,
+            "precio_regular": 500,
+            "image": "",
+            "director": "No disponible",
+            "reparto": "No disponible",
+        }
 
     @rx.var
     def current_movie(self) -> dict:
-        for movie in self.all_movies_public:
+        for movie in self.public_movies:
             if int(movie.get("id", 0)) == int(self.movie_id):
                 return movie
 
-        if self.all_movies_public:
-            return self.all_movies_public[0]
+        if self.public_movies:
+            return self.public_movies[0]
 
-        return self.limpiar_pelicula_publica(MOVIES[0])
+        return self.hero_movie
 
     @rx.var
     def trailer_url(self) -> str:
@@ -350,7 +421,7 @@ class State(rx.State):
         q = self.search_text.strip().lower()
 
         movies = [
-            m for m in self.all_movies_public
+            m for m in self.public_movies
             if m.get("estado") == "cartelera"
         ]
 
@@ -369,10 +440,9 @@ class State(rx.State):
         q = self.search_text.strip().lower()
 
         movies = [
-            m for m in self.all_movies_public
+            m for m in self.public_movies
             if m.get("estado") == "proximamente"
         ]
-
         if not q:
             return movies
 
@@ -419,8 +489,14 @@ class State(rx.State):
         self.api_message = ""
 
         try:
+            params = {}
+
+            if self.selected_location:
+                params["sucursal"] = self.selected_location
+
             response = httpx.get(
                 f"{API_BASE_URL}/peliculas/{self.movie_id}/funciones",
+                params=params,
                 timeout=10,
             )
 
@@ -448,6 +524,8 @@ class State(rx.State):
         self.selected_funcion_id = 0
         self.selected_seats = []
         self.api_message = ""
+
+        self.load_public_movies_por_sucursal()
 
         for funcion in self.funciones:
             if funcion.get("sucursal") == location:
@@ -514,6 +592,17 @@ class State(rx.State):
         except Exception:
             self.seats = [dict(s) for s in INIT_SEATS]
 
+    def seleccionar_pelicula_home(self, pelicula_id: int):
+        peliculas = [
+            movie for movie in self.public_movies
+            if movie.get("estado") == "cartelera"
+        ][:5]
+
+        for index, pelicula in enumerate(peliculas):
+            if int(pelicula.get("id", 0)) == int(pelicula_id):
+                self.hero_index = index
+                return
+        
     def start_booking(self):
         self.api_message = ""
 
@@ -1767,23 +1856,48 @@ class State(rx.State):
     # =====================================================
 
     def next_hero(self):
-        total = len(self.all_movies_public)
-        if total <= 0:
-            total = len(HERO_SLIDES)
+        movies = [
+            movie for movie in self.public_movies
+            if movie.get("estado") == "cartelera"
+        ][:5]
+
+        total = len(movies)
 
         if total > 0:
             self.hero_index = (self.hero_index + 1) % total
 
+
     def prev_hero(self):
-        total = len(self.all_movies_public)
-        if total <= 0:
-            total = len(HERO_SLIDES)
+        movies = [
+            movie for movie in self.public_movies
+            if movie.get("estado") == "cartelera"
+        ][:5]
+
+        total = len(movies)
 
         if total > 0:
             self.hero_index = (self.hero_index - 1) % total
 
+
     def go_to_slide(self, idx: int):
-        self.hero_index = idx
+        movies = [
+            movie for movie in self.public_movies
+            if movie.get("estado") == "cartelera"
+        ][:5]
+
+        total = len(movies)
+
+        if total > 0:
+            self.hero_index = idx % total
+
+
+    def seleccionar_pelicula_home(self, pelicula_id: int):
+        peliculas = self.public_movies
+
+        for index, pelicula in enumerate(peliculas):
+            if int(pelicula.get("id", 0)) == int(pelicula_id):
+                self.hero_index = index
+                return
 
     def set_search_text(self, value: str):
         self.search_text = value

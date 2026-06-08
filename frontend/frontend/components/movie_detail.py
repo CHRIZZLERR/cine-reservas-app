@@ -12,7 +12,7 @@ except ModuleNotFoundError:
 
 def trailer_box() -> rx.Component:
     return rx.cond(
-        State.show_trailer,
+        State.show_trailer & (State.trailer_url != ""),
         rx.box(
             rx.el.iframe(
                 src=State.trailer_url,
@@ -24,7 +24,11 @@ def trailer_box() -> rx.Component:
         ),
         rx.box(
             rx.image(
-                src=State.current_movie["image"],
+                src=rx.cond(
+                    State.current_movie["backdrop_url"] != "",
+                    State.current_movie["backdrop_url"],
+                    State.current_movie["poster_url"],
+                ),
                 class_name="trailer-placeholder-img",
             ),
             rx.box(
@@ -42,7 +46,11 @@ def detail_page() -> rx.Component:
 
         rx.box(
             rx.image(
-                src=State.current_movie["image"],
+                src=rx.cond(
+                    State.current_movie["backdrop_url"] != "",
+                    State.current_movie["backdrop_url"],
+                    State.current_movie["poster_url"],
+                ),
                 class_name="detail-bg",
             ),
             rx.box(class_name="detail-overlay"),
@@ -50,7 +58,7 @@ def detail_page() -> rx.Component:
             rx.grid(
                 rx.box(
                     rx.image(
-                        src=State.current_movie["poster"],
+                        src=State.current_movie["poster_url"],
                         class_name="detail-poster",
                     ),
                     class_name="detail-poster-wrap",
@@ -75,7 +83,7 @@ def detail_page() -> rx.Component:
                             class_name="detail-chip",
                         ),
                         rx.text(
-                            State.current_movie["duracion"],
+                            State.current_movie["duracion_texto"],
                             class_name="detail-chip",
                         ),
                         spacing="2",

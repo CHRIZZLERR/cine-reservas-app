@@ -368,17 +368,409 @@ def importar_pelicula_desde_tmdb(
             "estado": estado,
             "activa": True,
         }
+    finally:
+        cursor.close()
+        conexion.close()
 
-    except HTTPException:
-        conexion.rollback()
-        raise
 
-    except Exception as error:
-        conexion.rollback()
-        raise HTTPException(
-            status_code=500,
-            detail=f"Error al importar película desde TMDB: {str(error)}"
+# =====================================================
+# ACTUALIZAR IMÁGENES Y TRAILERS DESDE TMDB
+# =====================================================
+
+def construir_imagen_tmdb(path: str | None, size: str = "original") -> str:
+    if not path:
+        return ""
+
+    if str(path).startswith("http"):
+        return str(path)
+
+    return f"https://image.tmdb.org/t/p/{size}{path}"
+
+
+def seleccionar_trailer_tmdb(videos: list[dict]) -> str:
+    if not videos:
+        return ""
+
+    # Prioridad 1: trailer oficial de YouTube
+    for video in videos:
+        if (
+            video.get("site") == "YouTube"
+            and video.get("type") == "Trailer"
+            and video.get("official") is True
+            and video.get("key")
+        ):
+            return f"https://www.youtube.com/watch?v={video.get('key')}"
+
+    # Prioridad 2: cualquier trailer de YouTube
+    for video in videos:
+        if (
+            video.get("site") == "YouTube"
+            and video.get("type") == "Trailer"
+            and video.get("key")
+        ):
+            return f"https://www.youtube.com/watch?v={video.get('key')}"
+
+    # Prioridad 3: teaser de YouTube
+    for video in videos:
+        if (
+            video.get("site") == "YouTube"
+            and video.get("type") == "Teaser"
+            and video.get("key")
+        ):
+            return f"https://www.youtube.com/watch?v={video.get('key')}"
+
+    # Prioridad 4: cualquier video de YouTube
+    for video in videos:
+        if video.get("site") == "YouTube" and video.get("key"):
+            return f"https://www.youtube.com/watch?v={video.get('key')}"
+
+    return ""
+
+
+def obtener_media_tmdb(tmdb_id: int, language: str = "es-ES") -> dict:
+    detalle = consultar_tmdb(
+        f"/movie/{tmdb_id}",
+        {
+            "language": language,
+            "append_to_response": "videos",
+        },
+    )
+
+    poster_url = construir_imagen_tmdb(detalle.get("poster_path"), "w500")
+    backdrop_url = construir_imagen_tmdb(detalle.get("backdrop_path"), "w1280")
+
+    videos = detalle.get("videos", {}).get("results", [])
+    trailer = seleccionar_trailer_tmdb(videos)
+
+    # Si en español no aparece trailer, intenta en inglés.
+    if not trailer and language != "en-US":
+        detalle_en = consultar_tmdb(
+            f"/movie/{tmdb_id}",
+            {
+                "language": "en-US",
+                "append_to_response": "videos",
+            },
         )
 
+        videos_en = detalle_en.get("videos", {}).get("results", [])
+        trailer = seleccionar_trailer_tmdb(videos_en)
+
+    return {
+        "poster_url": poster_url,
+        "backdrop_url": backdrop_url,
+        "trailer": trailer,
+    }
+
+
+@router.put("/tmdb/actualizar-media-peliculas")
+def actualizar_media_peliculas_tmdb(language: str = "es-ES"):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+
+    try:
+        cursor.execute(
+            """
+            SELECT id, tmdb_id, titulo, poster_url, backdrop_url, trailer
+            FROM peliculas
+            WHERE tmdb_id IS NOT NULL
+              AND tmdb_id > 0
+            """
+        )
+
+        peliculas = cursor.fetchall()
+        actualizadas = []
+        errores = []
+
+        for pelicula in peliculas:
+            try:
+                media = obtener_media_tmdb(
+                    int(pelicula["tmdb_id"]),
+                    language,
+                )
+
+                poster_url = media.get("poster_url") or pelicula.get("poster_url") or ""
+                backdrop_url = media.get("backdrop_url") or pelicula.get("backdrop_url") or ""
+                trailer = media.get("trailer") or pelicula.get("trailer") or ""
+
+                cursor.execute(
+                    """
+                    UPDATE peliculas
+                    SET poster_url = %s,
+                        backdrop_url = %s,
+                        trailer = %s
+                    WHERE id = %s
+                    """,
+                    (
+                        poster_url,
+                        backdrop_url,
+                        trailer,
+                        pelicula["id"],
+                    ),
+                )
+
+                actualizadas.append(
+                    {
+                        "id": pelicula["id"],
+                        "titulo": pelicula["titulo"],
+                        "tmdb_id": pelicula["tmdb_id"],
+                        "poster_url": poster_url,
+                        "backdrop_url": backdrop_url,
+                        "trailer": trailer,
+                    }
+                )
+
+            except Exception as error:
+                errores.append(
+                    {
+                        "id": pelicula.get("id"),
+                        "titulo": pelicula.get("titulo"),
+                        "error": str(error),
+                    }
+                )
+
+        conexion.commit()
+
+        return {
+            "mensaje": "Media de películas actualizada desde TMDB",
+            "total_actualizadas": len(actualizadas),
+            "total_errores": len(errores),
+            "peliculas": actualizadas,
+            "errores": errores,
+        }
+
     finally:
+        cursor.close()
+        conexion.close()
+
+
+# =====================================================
+# SINCRONIZAR TODO DESDE TMDB
+# título, sinopsis, imágenes, trailer, duración, rating
+# =====================================================
+
+def construir_imagen_tmdb_segura(path: str | None, size: str = "w500") -> str:
+    if not path:
+        return ""
+
+    if str(path).startswith("http"):
+        return str(path)
+
+    return f"https://image.tmdb.org/t/p/{size}{path}"
+
+
+def seleccionar_trailer_tmdb_seguro(videos: list[dict]) -> str:
+    if not videos:
+        return ""
+
+    for video in videos:
+        if (
+            video.get("site") == "YouTube"
+            and video.get("type") == "Trailer"
+            and video.get("official") is True
+            and video.get("key")
+        ):
+            return f"https://www.youtube.com/watch?v={video.get('key')}"
+
+    for video in videos:
+        if (
+            video.get("site") == "YouTube"
+            and video.get("type") == "Trailer"
+            and video.get("key")
+        ):
+            return f"https://www.youtube.com/watch?v={video.get('key')}"
+
+    for video in videos:
+        if (
+            video.get("site") == "YouTube"
+            and video.get("type") == "Teaser"
+            and video.get("key")
+        ):
+            return f"https://www.youtube.com/watch?v={video.get('key')}"
+
+    for video in videos:
+        if video.get("site") == "YouTube" and video.get("key"):
+            return f"https://www.youtube.com/watch?v={video.get('key')}"
+
+    return ""
+
+
+def extraer_generos_tmdb(generos: list[dict]) -> str:
+    nombres = []
+
+    for genero in generos:
+        nombre = genero.get("name")
+        if nombre:
+            nombres.append(nombre)
+
+    return " / ".join(nombres) if nombres else "No disponible"
+
+
+@router.put("/tmdb/sincronizar-peliculas-completo")
+def sincronizar_peliculas_completo(language: str = "es-ES"):
+    conexion = obtener_conexion()
+    cursor = conexion.cursor(dictionary=True)
+
+    try:
+        cursor.execute(
+            """
+            SELECT id, tmdb_id, titulo, estado, clasificacion
+            FROM peliculas
+            WHERE tmdb_id IS NOT NULL
+              AND tmdb_id > 0
+            """
+        )
+
+        peliculas = cursor.fetchall()
+
+        actualizadas = []
+        errores = []
+
+        for pelicula_local in peliculas:
+            try:
+                tmdb_id = int(pelicula_local["tmdb_id"])
+
+                detalle = consultar_tmdb(
+                    f"/movie/{tmdb_id}",
+                    {
+                        "language": language,
+                        "append_to_response": "videos,release_dates,credits",
+                    },
+                )
+
+                titulo = (
+                    detalle.get("title")
+                    or detalle.get("name")
+                    or detalle.get("original_title")
+                    or pelicula_local.get("titulo")
+                    or "Sin título"
+                )
+
+                sinopsis = (
+                    detalle.get("overview")
+                    or "Sin descripción disponible."
+                )
+
+                genero = extraer_generos_tmdb(detalle.get("genres", []))
+
+                duracion = int(detalle.get("runtime") or 0)
+
+                poster_url = construir_imagen_tmdb_segura(
+                    detalle.get("poster_path"),
+                    "w500",
+                )
+
+                backdrop_url = construir_imagen_tmdb_segura(
+                    detalle.get("backdrop_path"),
+                    "w1280",
+                )
+
+                rating = float(detalle.get("vote_average") or 0)
+
+                fecha_estreno = detalle.get("release_date") or ""
+
+                videos = detalle.get("videos", {}).get("results", [])
+                trailer = seleccionar_trailer_tmdb_seguro(videos)
+
+                credits = detalle.get("credits", {})
+                crew = credits.get("crew", [])
+                cast = credits.get("cast", [])
+
+                director = ""
+                for persona in crew:
+                    if persona.get("job") == "Director":
+                        director = persona.get("name", "")
+                        break
+
+                if not director:
+                    director = "No disponible"
+
+                reparto_lista = []
+                for actor in cast[:6]:
+                    nombre = actor.get("name", "")
+                    if nombre:
+                        reparto_lista.append(nombre)
+
+                reparto = ", ".join(reparto_lista) if reparto_lista else "No disponible"
+
+                clasificacion = pelicula_local.get("clasificacion") or "S/R"
+
+                release_results = detalle.get("release_dates", {}).get("results", [])
+                for pais in release_results:
+                    if pais.get("iso_3166_1") == "US":
+                        for release in pais.get("release_dates", []):
+                            cert = release.get("certification")
+                            if cert:
+                                clasificacion = cert
+                                break
+
+                cursor.execute(
+                    """
+                    UPDATE peliculas
+                    SET titulo = %s,
+                        sinopsis = %s,
+                        genero = %s,
+                        clasificacion = %s,
+                        duracion_minutos = %s,
+                        poster_url = %s,
+                        backdrop_url = %s,
+                        trailer = %s,
+                        director = %s,
+                        reparto = %s,
+                        rating = %s,
+                        fecha_estreno = %s
+                    WHERE id = %s
+                    """,
+                    (
+                        titulo,
+                        sinopsis,
+                        genero,
+                        clasificacion,
+                        duracion,
+                        poster_url,
+                        backdrop_url,
+                        trailer,
+                        director,
+                        reparto,
+                        rating,
+                        fecha_estreno,
+                        pelicula_local["id"],
+                    ),
+                )
+
+                actualizadas.append(
+                    {
+                        "id": pelicula_local["id"],
+                        "tmdb_id": tmdb_id,
+                        "titulo_anterior": pelicula_local["titulo"],
+                        "titulo_tmdb": titulo,
+                        "poster_url": poster_url,
+                        "backdrop_url": backdrop_url,
+                        "trailer": trailer,
+                        "director": director,
+                        "reparto": reparto,
+                    }
+                )
+
+            except Exception as error:
+                errores.append(
+                    {
+                        "id": pelicula_local.get("id"),
+                        "titulo": pelicula_local.get("titulo"),
+                        "tmdb_id": pelicula_local.get("tmdb_id"),
+                        "error": str(error),
+                    }
+                )
+
+        conexion.commit()
+
+        return {
+            "mensaje": "Películas sincronizadas completamente desde TMDB",
+            "total_actualizadas": len(actualizadas),
+            "total_errores": len(errores),
+            "peliculas": actualizadas,
+            "errores": errores,
+        }
+
+    finally:
+        cursor.close()
         conexion.close()
