@@ -10,7 +10,7 @@ def movie_card(movie: dict) -> rx.Component:
     return rx.box(
         rx.box(
             rx.image(
-                src=movie["poster"],
+                src=movie["poster_url"],
                 style={
                     "position": "absolute",
                     "top": "0",
@@ -40,7 +40,7 @@ def movie_card(movie: dict) -> rx.Component:
             rx.text(movie["genero"], class_name="movie-genre"),
             rx.heading(movie["titulo"], class_name="movie-title"),
             rx.hstack(
-                rx.text(movie["duracion"], class_name="movie-duration"),
+                rx.text(movie["duracion_texto"], class_name="movie-duration"),
                 rx.spacer(),
                 rx.text(movie["fecha_estreno"], class_name="movie-date"),
             ),

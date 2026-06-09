@@ -2,22 +2,26 @@ import reflex as rx  # type: ignore[import]
 
 try:
     from state import State
-    from data import HERO_SLIDES
     from components.navbar import navbar
 except ModuleNotFoundError:
     from ..state import State
-    from ..data import HERO_SLIDES
     from .navbar import navbar
 
 
 def hero_thumb(movie: dict, idx: int) -> rx.Component:
     return rx.box(
         rx.el.img(
-            src=movie["poster"],
+            src=movie["poster_url"],
             alt=movie["titulo"],
-            style={"width": "110px", "height": "165px", "objectFit": "cover",
-                   "borderRadius": "12px", "border": "1.5px solid rgba(255,255,255,.12)",
-                   "boxShadow": "0 18px 45px rgba(0,0,0,.65)", "display": "block"},
+            style={
+                "width": "110px",
+                "height": "165px",
+                "objectFit": "cover",
+                "borderRadius": "12px",
+                "border": "1.5px solid rgba(255,255,255,.12)",
+                "boxShadow": "0 18px 45px rgba(0,0,0,.65)",
+                "display": "block",
+            },
         ),
         rx.text(movie["titulo"], class_name="hero-thumb-title"),
         class_name=rx.cond(
@@ -32,12 +36,15 @@ def hero_thumb(movie: dict, idx: int) -> rx.Component:
 def hero_section() -> rx.Component:
     return rx.box(
         rx.el.img(
-            src=State.hero_movie["image"],
+            src=State.hero_movie["backdrop_url"],
             alt="",
             style={
-                "position": "absolute", "inset": "0",
-                "width": "100%", "height": "100%",
-                "objectFit": "cover", "objectPosition": "center top",
+                "position": "absolute",
+                "inset": "0",
+                "width": "100%",
+                "height": "100%",
+                "objectFit": "cover",
+                "objectPosition": "center top",
                 "filter": "saturate(1.08) contrast(1.06)",
                 "animation": "kenBurns 12s ease-in-out infinite alternate",
                 "zIndex": "0",
@@ -45,7 +52,12 @@ def hero_section() -> rx.Component:
         ),
         rx.box(class_name="hero-layer"),
         navbar("inicio"),
-        rx.button("", id="auto-next-hero", on_click=State.next_hero, style={"display": "none"}),
+        rx.button(
+            "",
+            id="auto-next-hero",
+            on_click=State.next_hero,
+            style={"display": "none"},
+        ),
         rx.script(
             "(function(){if(window.__cinehubHeroTimer){clearInterval(window.__cinehubHeroTimer);}"
             "window.__cinehubHeroTimer=setInterval(function(){"
@@ -61,34 +73,52 @@ def hero_section() -> rx.Component:
                     rx.text("Genres:", class_name="meta-label"),
                     rx.text(State.hero_movie["genero"], class_name="meta-text"),
                     rx.text(State.hero_movie["clasificacion"], class_name="age-chip"),
-                    spacing="2", wrap="wrap", align="center",
+                    spacing="2",
+                    wrap="wrap",
+                    align="center",
                 ),
                 rx.hstack(
                     rx.text("★", class_name="star"),
                     rx.text(State.hero_movie["rating"], class_name="rating"),
                     rx.text("/10", class_name="rating-muted"),
-                    spacing="1", align="center",
+                    spacing="1",
+                    align="center",
                 ),
                 rx.hstack(
-                    rx.button("Comprar ahora", class_name="btn-hero", on_click=State.hero_details),
-                    rx.button("Ver trailer", class_name="btn-hero-outline", on_click=State.hero_trailer),
+                    rx.button(
+                        "Comprar ahora",
+                        class_name="btn-hero",
+                        on_click=State.hero_details,
+                    ),
+                    rx.button(
+                        "Ver trailer",
+                        class_name="btn-hero-outline",
+                        on_click=State.hero_trailer,
+                    ),
                     spacing="3",
                 ),
-                spacing="3", align="start", class_name="hero-info",
+                spacing="3",
+                align="start",
+                class_name="hero-info",
             ),
             rx.box(
                 rx.hstack(
-                    *[hero_thumb(movie, idx) for idx, movie in enumerate(HERO_SLIDES[:6])],
-                    spacing="3", class_name="hero-thumbs",
+                    rx.foreach(State.cartelera_movies, hero_thumb),
+                    spacing="3",
+                    class_name="hero-thumbs",
                 ),
                 rx.hstack(
                     rx.button("‹", class_name="carousel-btn", on_click=State.prev_hero),
                     rx.button("›", class_name="carousel-btn", on_click=State.next_hero),
-                    spacing="2", class_name="carousel-controls",
+                    spacing="2",
+                    class_name="carousel-controls",
                 ),
                 class_name="hero-side",
             ),
-            columns="2", spacing="0", class_name="hero-grid-layout",
+            columns="2",
+            spacing="0",
+            class_name="hero-grid-layout",
         ),
         class_name="hero",
+        on_mount=State.load_public_movies,
     )
