@@ -4,13 +4,13 @@ try:
     from state import State
     from components.seat_map import seat_map
     from components.food_menu import food_section
-    from components.booking_summary import invoice, customer_form, confirmation
+    from components.booking_summary import invoice, customer_form, confirmation, payment_review
     from components.navbar import navbar, search_overlay, side_menu
 except ModuleNotFoundError:
     from ..state import State
     from ..components.seat_map import seat_map
     from ..components.food_menu import food_section
-    from ..components.booking_summary import invoice, customer_form, confirmation
+    from ..components.booking_summary import invoice, customer_form, confirmation, payment_review
     from ..components.navbar import navbar, search_overlay, side_menu
 
 
@@ -28,16 +28,27 @@ def step_item(number: int, title: str) -> rx.Component:
 def booking_content() -> rx.Component:
     return rx.cond(
         State.booking_step == 1,
-        seat_map(),
+        customer_form(),
         rx.cond(
             State.booking_step == 2,
-            food_section(),
+            seat_map(),
             rx.cond(
                 State.booking_step == 3,
-                customer_form(),
-                confirmation(),
+                food_section(),
+                payment_review(),
             ),
         ),
+    )
+
+
+def checkout_steps() -> rx.Component:
+    return rx.hstack(
+        step_item(1, "Cuenta"),
+        step_item(2, "Asientos"),
+        step_item(3, "Comida y carrito"),
+        step_item(4, "Pago"),
+        spacing="3",
+        class_name="checkout-steps checkout-steps-caribbean",
     )
 
 
@@ -48,21 +59,14 @@ def booking_page() -> rx.Component:
             rx.text("COMPRA DE BOLETOS", class_name="section-kicker"),
             rx.heading("Finaliza tu reserva", class_name="page-title"),
             rx.text(
-                "Selecciona tus asientos, agrega dulcería y genera tu ticket con código QR.",
+                "Completa tu cuenta, selecciona tus asientos, agrega comida y confirma tu reserva.",
                 class_name="checkout-subtitle",
             ),
-            rx.hstack(
-                step_item(1, "Asientos"),
-                step_item(2, "Dulcería"),
-                step_item(3, "Datos"),
-                step_item(4, "Ticket"),
-                spacing="3",
-                class_name="checkout-steps",
-            ),
+            checkout_steps(),
             class_name="checkout-hero",
         ),
         rx.cond(
-            State.booking_step == 4,
+            State.booking_step == 5,
             rx.box(
                 confirmation(),
                 class_name="booking-layout booking-layout-confirm",
@@ -75,7 +79,7 @@ def booking_page() -> rx.Component:
                 invoice(),
                 columns="2",
                 spacing="4",
-                class_name="booking-layout",
+                class_name="booking-layout booking-layout-caribbean",
             ),
         ),
         search_overlay(),

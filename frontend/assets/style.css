@@ -2476,3 +2476,1187 @@ a     { text-decoration: none; color: inherit; }
   .page-title  { font-size: 42px !important; }
 
 }
+
+/* =============================================================
+   CHECKOUT FLOW - JC CINEMAS / ESTILO CARIBBEAN
+   Pegar al final de frontend/assets/style.css
+   ============================================================= */
+
+.checkout-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top left, rgba(155, 0, 24, .18), transparent 28%),
+    linear-gradient(180deg, #07101f 0%, #05070d 100%);
+  padding-bottom: 80px;
+}
+
+.checkout-hero {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 115px 24px 18px;
+}
+
+.checkout-subtitle {
+  max-width: 680px;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.checkout-steps {
+  margin-top: 28px;
+  padding: 18px 20px;
+  border: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(8, 13, 24, .72);
+  border-radius: 22px;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, .25);
+}
+
+.checkout-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.step-bubble {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: #c8d3e6;
+  background: rgba(255, 255, 255, .08);
+  border: 1px solid rgba(255, 255, 255, .13);
+}
+
+.step-active {
+  color: #fff;
+  background: linear-gradient(135deg, var(--red2), #ef123b);
+  border-color: rgba(255, 255, 255, .22);
+  box-shadow: 0 0 0 5px rgba(180, 0, 34, .16), 0 12px 28px rgba(180, 0, 34, .28);
+}
+
+.step-title {
+  color: var(--dim);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.step-title-active {
+  color: var(--white);
+}
+
+.booking-layout {
+  max-width: 1180px;
+  margin: 24px auto 0;
+  padding: 0 24px;
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr) 360px !important;
+}
+
+.booking-layout-confirm {
+  max-width: 1180px;
+  margin: 28px auto 0;
+  padding: 0 24px;
+}
+
+.booking-main,
+.checkout-main {
+  min-width: 0;
+}
+
+.checkout-section-card,
+.form-card,
+.confirm-ticket-card {
+  border: 1px solid rgba(255, 255, 255, .10);
+  background:
+    linear-gradient(180deg, rgba(12, 20, 36, .96), rgba(7, 12, 22, .94));
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, .32),
+    inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+.form-header {
+  margin-bottom: 18px;
+}
+
+.form-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(180, 0, 34, .18);
+  border: 1px solid rgba(255, 255, 255, .08);
+  font-size: 22px;
+}
+
+.block-label {
+  color: var(--white);
+  font-size: 13px;
+  font-weight: 900;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+}
+
+.form-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.checkout-account-card {
+  margin: 16px 0;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid rgba(255, 255, 255, .09);
+}
+
+.payment-card {
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid rgba(255, 255, 255, .10);
+}
+
+.payment-label {
+  color: var(--dim);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.payment-value {
+  color: var(--white);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.form-grid {
+  margin-top: 8px;
+}
+
+.form-input {
+  height: 54px;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, .12) !important;
+  background: rgba(3, 7, 15, .66) !important;
+  color: var(--white) !important;
+  padding: 0 16px !important;
+  font-family: var(--font-body) !important;
+  font-size: 15px !important;
+}
+
+.form-input::placeholder {
+  color: rgba(170, 180, 198, .72);
+}
+
+.form-input:focus {
+  border-color: rgba(107, 174, 255, .55) !important;
+  box-shadow: 0 0 0 4px rgba(107, 174, 255, .11) !important;
+}
+
+.auth-message {
+  margin-top: 14px;
+  color: #ffd1d8;
+  background: rgba(180, 0, 34, .16);
+  border: 1px solid rgba(180, 0, 34, .28);
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-weight: 700;
+}
+
+/* PANEL DERECHO / CARRITO */
+
+.cart-panel,
+.invoice {
+  position: sticky;
+  top: 92px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  background:
+    linear-gradient(180deg, rgba(12, 20, 36, .96), rgba(7, 12, 22, .96));
+  border-radius: 24px;
+  padding: 22px;
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, .35),
+    inset 0 1px 0 rgba(255, 255, 255, .04);
+}
+
+.cart-header {
+  margin-bottom: 18px;
+}
+
+.cart-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  background: rgba(180, 0, 34, .18);
+  border: 1px solid rgba(255, 255, 255, .09);
+  font-size: 20px;
+}
+
+.invoice-title {
+  font-size: 24px;
+  font-family: var(--font-title);
+  letter-spacing: .04em;
+}
+
+.invoice-muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.cart-movie {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  gap: 14px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid rgba(255, 255, 255, .08);
+}
+
+.cart-poster {
+  width: 74px;
+  height: 104px;
+  object-fit: cover;
+  border-radius: 12px;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, .34);
+}
+
+.invoice-movie {
+  color: var(--white);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.cart-row {
+  padding: 9px 0;
+}
+
+.cart-label {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.cart-value {
+  color: var(--white);
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.cart-section-title {
+  color: var(--white);
+  font-weight: 900;
+  margin: 12px 0 6px;
+}
+
+.cart-empty {
+  color: var(--dim);
+  font-size: 14px;
+  padding: 10px 0;
+}
+
+.cart-food-list {
+  padding: 8px 0;
+}
+
+.cart-food-row {
+  padding: 8px 0;
+}
+
+.cart-food-name {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.cart-total-row {
+  margin-top: 12px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(180, 0, 34, .15);
+  border: 1px solid rgba(180, 0, 34, .32);
+}
+
+.invoice-total-label {
+  color: var(--white);
+  font-weight: 900;
+  font-size: 17px;
+}
+
+.checkout-btn {
+  width: 100%;
+  margin-top: 18px;
+  height: 54px;
+  border-radius: 16px !important;
+  border: none !important;
+  background: linear-gradient(135deg, var(--red2), #ef123b) !important;
+  color: white !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em;
+  box-shadow: 0 16px 34px rgba(180, 0, 34, .28);
+  cursor: pointer;
+  transition: transform .18s ease, box-shadow .18s ease, filter .18s ease;
+}
+
+.checkout-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.08);
+  box-shadow: 0 20px 42px rgba(180, 0, 34, .38);
+}
+
+.btn-ghost {
+  min-height: 44px;
+  border-radius: 14px !important;
+  border: 1px solid rgba(255, 255, 255, .14) !important;
+  background: rgba(255, 255, 255, .045) !important;
+  color: var(--white) !important;
+  font-weight: 800 !important;
+  padding: 0 18px !important;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  background: rgba(255, 255, 255, .075) !important;
+  border-color: rgba(107, 174, 255, .32) !important;
+}
+
+.full {
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* TICKET FINAL */
+
+.confirm-ticket-card {
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.ticket-grid {
+  align-items: stretch;
+}
+
+.ticket-left,
+.ticket-right {
+  border-radius: 22px;
+  padding: 24px;
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid rgba(255, 255, 255, .09);
+}
+
+.ticket-left {
+  text-align: center;
+}
+
+.ticket-icon {
+  font-size: 44px;
+  margin-bottom: 10px;
+}
+
+.ticket-title {
+  font-family: var(--font-title);
+  font-size: 48px;
+  letter-spacing: .04em;
+}
+
+.ticket-muted {
+  color: var(--muted);
+  margin-bottom: 18px;
+}
+
+.ticket-code {
+  display: inline-block;
+  margin: 12px auto 18px;
+  padding: 12px 18px;
+  color: var(--gold);
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: .12em;
+  background: rgba(255, 214, 10, .08);
+  border: 1px solid rgba(255, 214, 10, .24);
+  border-radius: 14px;
+}
+
+.reservation-qr {
+  width: 220px;
+  height: 220px;
+  margin: 0 auto 18px;
+  padding: 12px;
+  background: white;
+  border-radius: 18px;
+}
+
+.ticket-kicker {
+  color: var(--red3);
+  font-weight: 900;
+  letter-spacing: .18em;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.ticket-movie {
+  font-family: var(--font-title);
+  font-size: 38px;
+  letter-spacing: .04em;
+  margin: 8px 0 12px;
+}
+
+.ticket-total {
+  margin-top: 14px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(255, 214, 10, .08);
+  border: 1px solid rgba(255, 214, 10, .22);
+}
+
+.ticket-total-label {
+  color: var(--white);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+/* ADMIN NAV LINK */
+
+.admin-panel-link {
+  color: var(--gold) !important;
+  border-bottom: 1px solid rgba(255, 214, 10, .45);
+}
+
+/* RESPONSIVE CHECKOUT */
+
+@media (max-width: 980px) {
+  .booking-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cart-panel,
+  .invoice {
+    position: static;
+  }
+
+  .checkout-steps {
+    overflow-x: auto;
+    justify-content: flex-start;
+  }
+
+  .ticket-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 640px) {
+  .checkout-hero {
+    padding: 96px 16px 12px;
+  }
+
+  .booking-layout,
+  .booking-layout-confirm {
+    padding: 0 16px;
+  }
+
+  .checkout-section-card,
+  .form-card,
+  .cart-panel,
+  .invoice,
+  .confirm-ticket-card {
+    border-radius: 20px;
+    padding: 18px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ticket-title {
+    font-size: 38px;
+  }
+}
+
+/* =============================================================
+   SCHEDULE EMPTY STATES / HORARIOS
+   ============================================================= */
+
+.schedule-options-row {
+  margin-bottom: 8px;
+}
+
+.schedule-empty-card {
+  width: 100%;
+  max-width: 720px;
+  margin: 8px 0 14px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at top left, rgba(180,0,34,.12), transparent 36%),
+    rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+.schedule-empty-title {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 900;
+  margin-bottom: 5px;
+}
+
+.schedule-empty-text {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.schedule-helper-text {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  margin-top: 4px;
+}
+
+.schedule-continue-btn {
+  margin-top: 8px !important;
+  min-width: 260px !important;
+}
+
+/* =============================================================
+   CHECKOUT GUEST MODE + SCHEDULE ACTIVE FIX
+   Pegar al final de frontend/assets/style.css
+   ============================================================= */
+
+.checkout-payment-card {
+  padding: 34px !important;
+}
+
+.checkout-mode-card {
+  margin-top: 22px;
+  padding: 24px 26px;
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.032));
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.checkout-mode-card-active {
+  background:
+    radial-gradient(circle at top left, rgba(255,214,10,.10), transparent 34%),
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.032));
+  border-color: rgba(255,214,10,.24);
+}
+
+.checkout-mode-head {
+  margin-bottom: 18px;
+}
+
+.checkout-mode-icon {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: rgba(180,0,34,.18);
+  border: 1px solid rgba(180,0,34,.28);
+  font-size: 22px;
+}
+
+.checkout-mode-icon-ok {
+  background: rgba(255,214,10,.12);
+  border-color: rgba(255,214,10,.28);
+  color: var(--gold);
+  font-weight: 900;
+}
+
+.checkout-mode-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.checkout-mode-text {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
+.checkout-login-strip {
+  margin-top: 18px;
+  padding: 18px;
+  border-radius: 18px;
+  background: rgba(0,0,0,.18);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.checkout-login-kicker {
+  color: rgba(255,255,255,.88);
+  font-size: 14px;
+  font-weight: 900;
+  margin-bottom: 12px;
+}
+
+.checkout-auth-actions {
+  align-items: center;
+}
+
+.checkout-auth-btn {
+  min-width: 150px;
+}
+
+.checkout-account-grid {
+  margin-top: 18px;
+}
+
+.checkout-separator {
+  width: 100%;
+  height: 1px;
+  margin: 28px 0;
+  background: rgba(255,255,255,.10);
+}
+
+.checkout-fields-grid {
+  gap: 18px !important;
+}
+
+.checkout-fields-grid .form-input,
+.checkout-payment-card .form-input {
+  height: 60px !important;
+  border-radius: 18px !important;
+  font-size: 15px !important;
+  padding: 0 20px !important;
+}
+
+.checkout-payment-card .payment-card {
+  min-height: 60px;
+  border-radius: 18px;
+  padding: 14px 20px;
+}
+
+.showtime.showtime-active,
+.pill.pill-active {
+  background: rgba(180,0,34,.30) !important;
+  border-color: var(--red3) !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 4px rgba(180,0,34,.12), 0 0 22px rgba(180,0,34,.28) !important;
+}
+
+.showtime.showtime-active::after,
+.pill.pill-active::after {
+  width: 100% !important;
+}
+
+@media (max-width: 760px) {
+  .checkout-payment-card {
+    padding: 22px !important;
+  }
+
+  .checkout-fields-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .checkout-mode-card {
+    padding: 20px;
+  }
+}
+
+/* =============================================================
+   FAST CHECKOUT VISUAL PATCH - JC CINEMAS
+   Pegar al final de frontend/assets/style.css
+   ============================================================= */
+
+.customer-form-pro {
+  padding: 30px !important;
+  border-radius: 28px !important;
+  background:
+    radial-gradient(circle at top left, rgba(180,0,34,.13), transparent 34%),
+    linear-gradient(180deg, rgba(13,18,31,.96), rgba(6,10,18,.96)) !important;
+}
+
+.guest-card-pro {
+  margin-top: 22px;
+  padding: 24px;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.07), rgba(255,255,255,.035));
+  border: 1px solid rgba(255,255,255,.11);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.guest-head {
+  margin-bottom: 18px;
+}
+
+.guest-icon {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 17px;
+  display: grid;
+  place-items: center;
+  background: rgba(180,0,34,.24);
+  border: 1px solid rgba(255,255,255,.11);
+  box-shadow: 0 12px 28px rgba(0,0,0,.22);
+}
+
+.guest-icon-ok {
+  color: #87f0a0;
+  background: rgba(30,150,80,.22);
+}
+
+.guest-title {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+}
+
+.guest-text {
+  max-width: 620px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.guest-save-box {
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(0,0,0,.18);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.guest-save-title {
+  color: #fff;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.guest-save-text {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.guest-action-btn {
+  height: 42px !important;
+  min-width: 132px !important;
+  border-radius: 14px !important;
+  background: rgba(255,255,255,.07) !important;
+  border: 1px solid rgba(255,255,255,.13) !important;
+  color: #fff !important;
+  font-size: 13px !important;
+  font-weight: 950 !important;
+}
+
+.guest-action-strong {
+  background: rgba(180,0,34,.18) !important;
+  border-color: rgba(210,11,47,.42) !important;
+}
+
+.checkout-form-grid {
+  margin-top: 4px;
+}
+
+.checkout-input-large {
+  height: 58px !important;
+  border-radius: 18px !important;
+  padding: 0 18px !important;
+  background: rgba(0,0,0,.22) !important;
+  border: 1px solid rgba(255,255,255,.15) !important;
+  font-size: 15px !important;
+}
+
+.checkout-input-large:focus {
+  border-color: rgba(210,11,47,.62) !important;
+  box-shadow: 0 0 0 4px rgba(180,0,34,.12) !important;
+}
+
+.pay-method-card {
+  min-height: 58px;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  border-radius: 18px !important;
+  background: rgba(255,255,255,.055) !important;
+}
+
+.pickup-notice {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 18px;
+  background: rgba(255,214,10,.075);
+  border: 1px solid rgba(255,214,10,.18);
+}
+
+.pickup-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #111;
+  background: var(--gold);
+  font-weight: 950;
+}
+
+.pickup-title {
+  color: #fff;
+  font-weight: 950;
+  font-size: 14px;
+}
+
+.pickup-text {
+  color: rgba(255,255,255,.72);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.pickup-mini-box {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 13px;
+  background: rgba(255,214,10,.075);
+  border: 1px solid rgba(255,214,10,.14);
+}
+
+.pickup-mini {
+  color: rgba(255,255,255,.72);
+  font-size: 12px;
+  font-weight: 850;
+}
+
+.showtime-active,
+.showtime.showtime-active,
+.pill-active,
+.pill.pill-active {
+  background: rgba(180,0,34,.35) !important;
+  border-color: #ef123b !important;
+  color: #fff !important;
+  box-shadow: 0 0 0 4px rgba(180,0,34,.12), 0 14px 28px rgba(180,0,34,.20) !important;
+}
+
+.showtime {
+  min-width: 130px !important;
+  justify-content: center !important;
+}
+
+.schedule-continue-btn {
+  margin-top: 14px !important;
+  min-width: 280px !important;
+}
+
+.cart-movie-pro {
+  background: linear-gradient(135deg, rgba(180,0,34,.18), rgba(255,255,255,.045)) !important;
+}
+
+@media (max-width: 860px) {
+  .guest-save-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+  }
+
+  .checkout-form-grid,
+  .account-info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =============================================================
+   CARIBBEAN-LIKE CHECKOUT FLOW PATCH - JC CINEMAS
+   Pegar al final de frontend/assets/style.css
+   ============================================================= */
+
+.checkout-steps-caribbean {
+  width: min(980px, 100%) !important;
+  padding: 18px 22px !important;
+  justify-content: space-between !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.checkout-steps-caribbean .checkout-step {
+  position: relative;
+  min-width: 120px;
+  justify-content: center;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkout-steps-caribbean .checkout-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 19px;
+  left: calc(50% + 32px);
+  width: calc(100% + 34px);
+  height: 2px;
+  background: rgba(255,255,255,.23);
+}
+
+.checkout-steps-caribbean .step-bubble {
+  z-index: 2;
+  width: 42px;
+  height: 42px;
+  font-size: 18px;
+  color: #0b1321;
+  background: #9aa5b1;
+  border: none;
+}
+
+.checkout-steps-caribbean .step-active {
+  color: #05070d !important;
+  background: #d20728 !important;
+  box-shadow: 0 0 0 6px rgba(210,7,40,.12), 0 0 28px rgba(210,7,40,.28) !important;
+}
+
+.checkout-steps-caribbean .step-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: rgba(255,255,255,.58);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.checkout-steps-caribbean .step-title-active {
+  color: #d20728 !important;
+}
+
+.booking-layout-caribbean {
+  grid-template-columns: minmax(0, 1fr) 360px !important;
+  max-width: 1240px !important;
+  gap: 22px !important;
+}
+
+.cc-customer-form,
+.cc-payment-review {
+  padding: 34px !important;
+}
+
+.cc-section-number {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 950;
+  background: linear-gradient(135deg, #b40022, #ef123b);
+  box-shadow: 0 0 0 6px rgba(180,0,34,.10);
+}
+
+.cc-account-card {
+  margin-top: 22px;
+  padding: 22px;
+  border-radius: 22px;
+  background: rgba(255,255,255,.045);
+  border: 1px solid rgba(255,255,255,.10);
+}
+
+.cc-account-grid {
+  margin-bottom: 18px;
+}
+
+.cc-account-option {
+  min-height: 170px;
+  padding: 22px;
+  border-radius: 20px;
+  background: rgba(0,0,0,.22);
+  border: 1px solid rgba(255,255,255,.10);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.cc-account-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 950;
+  margin-bottom: 10px;
+}
+
+.cc-account-text {
+  color: rgba(205,215,230,.78);
+  font-size: 14px;
+  font-weight: 750;
+  line-height: 1.55;
+}
+
+.cc-account-btn {
+  margin-top: 16px !important;
+  width: 100% !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  background: #b00018 !important;
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.12) !important;
+  font-weight: 950 !important;
+}
+
+.cc-account-btn-outline {
+  background: rgba(255,255,255,.06) !important;
+}
+
+.cc-guest-strip {
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(180,0,34,.16);
+  border: 1px solid rgba(180,0,34,.32);
+}
+
+.cc-guest-heading {
+  color: #fff;
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: .03em;
+  margin-bottom: 6px;
+}
+
+.cc-account-card-logged {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.cc-account-check {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(35,160,95,.45);
+  border: 1px solid rgba(80,220,140,.35);
+  font-weight: 950;
+}
+
+.cc-form-panel {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,.10);
+}
+
+.cc-form-title {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 950;
+  margin-bottom: 14px;
+}
+
+.cc-payment-grid {
+  margin-top: 18px;
+}
+
+.cc-payment-total-card {
+  margin-top: 18px;
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(180,0,34,.14);
+  border: 1px solid rgba(180,0,34,.35);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.customer-form-pro .form-header {
+  margin-bottom: 6px !important;
+}
+
+.checkout-input-large {
+  height: 56px !important;
+  border-radius: 14px !important;
+  background: rgba(1,5,12,.52) !important;
+}
+
+.pay-method-card,
+.account-info-card {
+  min-height: 56px !important;
+  border-radius: 14px !important;
+}
+
+.pickup-notice {
+  margin-top: 18px !important;
+}
+
+.invoice.cart-panel {
+  max-height: none !important;
+}
+
+@media (max-width: 980px) {
+  .booking-layout-caribbean {
+    grid-template-columns: 1fr !important;
+  }
+
+  .checkout-steps-caribbean {
+    overflow-x: auto;
+    justify-content: flex-start !important;
+  }
+
+  .checkout-steps-caribbean .checkout-step:not(:last-child)::after {
+    display: none;
+  }
+
+  .cc-account-grid,
+  .checkout-form-grid,
+  .cc-payment-grid,
+  .account-info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* =============================================================
+   AUTH PAGE PREMIUM PATCH
+   ============================================================= */
+
+.auth-card {
+  max-width: 460px;
+  width: 100%;
+}
+
+.auth-benefits {
+  margin-top: 20px;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, .045);
+  border: 1px solid rgba(255, 255, 255, .10);
+}
+
+.auth-benefit {
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 14px;
+  margin: 8px 0;
+}
+
+.auth-card .full {
+  width: 100% !important;
+}
+
+.auth-card .btn-primary-lg {
+  min-height: 54px !important;
+  border-radius: 16px !important;
+  font-size: 15px !important;
+}
+
+.auth-card .btn-ghost {
+  min-height: 50px !important;
+  border-radius: 16px !important;
+}

@@ -106,6 +106,7 @@ class State(rx.State):
     register_password: str = ""
     register_confirm_password: str = ""
     auth_message: str = ""
+    auth_next_url: str = ""
 
     # =====================================================
     # FUNCIONES / RESERVAS
@@ -476,8 +477,41 @@ class State(rx.State):
                 and label == time
             ):
                 self.selected_funcion_id = int(funcion.get("id", 0))
-                self.selected_showtime = str(funcion.get("hora", ""))
+                self.selected_showtime = time
                 break
+
+    def recuperar_funcion_seleccionada(self) -> bool:
+        if self.selected_funcion_id > 0:
+            return True
+
+        if not self.funciones:
+            self.load_movie_functions()
+
+        if (
+            not self.selected_location
+            or not self.selected_date
+            or not self.selected_showtime
+        ):
+            return False
+
+        for funcion in self.funciones:
+            hora = str(funcion.get("hora", ""))
+            sala = str(funcion.get("sala", ""))
+            label = f"{hora} · {sala}"
+
+            if (
+                funcion.get("sucursal") == self.selected_location
+                and str(funcion.get("fecha", "")) == self.selected_date
+                and (
+                    label == self.selected_showtime
+                    or hora == self.selected_showtime
+                )
+            ):
+                self.selected_funcion_id = int(funcion.get("id", 0))
+                self.selected_showtime = label
+                return True
+
+        return False
 
     def load_reserved_seats(self):
         if self.selected_funcion_id <= 0:
@@ -517,7 +551,7 @@ class State(rx.State):
     def start_booking(self):
         self.api_message = ""
 
-        if self.selected_funcion_id <= 0:
+        if not self.recuperar_funcion_seleccionada():
             self.api_message = "Selecciona una función válida antes de continuar."
             return
 
@@ -564,20 +598,24 @@ class State(rx.State):
     @rx.var
     def current_step_name(self) -> str:
         if self.booking_step == 1:
-            return "Selecciona tus asientos"
+            return "Cuenta y datos"
         if self.booking_step == 2:
-            return "Agrega comida y bebidas"
+            return "Selecciona tus asientos"
         if self.booking_step == 3:
-            return "Completa tus datos"
+            return "Comida y carrito"
+        if self.booking_step == 4:
+            return "Pago y confirmación"
         return "Reserva confirmada"
 
     @rx.var
     def next_button_text(self) -> str:
         if self.booking_step == 1:
-            return "Continuar a dulcería"
+            return "Siguiente: asientos"
         if self.booking_step == 2:
-            return "Continuar a datos"
+            return "Siguiente: comida y carrito"
         if self.booking_step == 3:
+            return "Siguiente: pago"
+        if self.booking_step == 4:
             return "Confirmar reserva"
         return "Reserva creada"
 
@@ -1857,7 +1895,29 @@ class State(rx.State):
     def next_step(self):
         self.api_message = ""
 
-        if self.booking_step == 1 and not self.selected_seats:
+        if not self.recuperar_funcion_seleccionada():
+            self.api_message = "La función seleccionada se perdió. Vuelve a elegir cine, fecha y horario."
+            return rx.redirect("/pelicula")
+
+        if self.booking_step == 1:
+            if self.is_logged_in:
+                self.customer_name = self.logged_user_name
+                self.customer_email = self.logged_user_email
+                if not self.customer_phone.strip():
+                    self.api_message = "Completa tu teléfono para continuar."
+                    return
+            else:
+                if not self.customer_name.strip():
+                    self.api_message = "Completa tu nombre para continuar como invitado."
+                    return
+                if not self.customer_email.strip():
+                    self.api_message = "Completa tu correo electrónico para recibir tu código."
+                    return
+                if not self.customer_phone.strip():
+                    self.api_message = "Completa tu teléfono para continuar."
+                    return
+
+        if self.booking_step == 2 and not self.selected_seats:
             self.api_message = "Selecciona al menos un asiento."
             return
 
@@ -1910,26 +1970,33 @@ class State(rx.State):
         self.api_message = ""
         self.reservation_message = ""
 
-        if self.selected_funcion_id <= 0:
-            self.api_message = "Debes seleccionar una función."
-            self.reservation_message = "Debes seleccionar una función."
-            return
+        if not self.recuperar_funcion_seleccionada():
+            self.api_message = "Debes volver a seleccionar una función antes de confirmar."
+            self.reservation_message = "Debes volver a seleccionar una función antes de confirmar."
+            return rx.redirect("/pelicula")
 
         if not self.selected_seats:
             self.api_message = "Debes seleccionar al menos un asiento."
             self.reservation_message = "Debes seleccionar al menos un asiento."
             return
 
+        usuario_id = self.logged_user_id if self.is_logged_in else None
+
         if self.is_logged_in:
             self.customer_name = self.logged_user_name
             self.customer_email = self.logged_user_email
         else:
-            if not self.customer_name or not self.customer_email:
-                self.api_message = "Completa tu nombre y correo."
-                self.reservation_message = "Completa tu nombre y correo."
+            if not self.customer_name.strip():
+                self.api_message = "Completa tu nombre."
+                self.reservation_message = "Completa tu nombre."
                 return
 
-        if not self.customer_phone:
+            if not self.customer_email.strip():
+                self.api_message = "Completa tu correo electrónico."
+                self.reservation_message = "Completa tu correo electrónico."
+                return
+
+        if not self.customer_phone.strip():
             self.api_message = "Completa tu teléfono."
             self.reservation_message = "Completa tu teléfono."
             return
@@ -1938,6 +2005,7 @@ class State(rx.State):
             response = httpx.post(
                 f"{API_BASE_URL}/reservas",
                 json={
+                    "usuario_id": usuario_id,
                     "funcion_id": self.selected_funcion_id,
                     "nombre_cliente": self.customer_name,
                     "email_cliente": self.customer_email,
@@ -1957,7 +2025,7 @@ class State(rx.State):
                 return
 
             self.reservation_code = data.get("codigo_reserva", "")
-            self.booking_step = 4
+            self.booking_step = 5
 
         except Exception as error:
             mensaje = f"Error conectando con el servidor: {str(error)}"
@@ -2005,6 +2073,18 @@ class State(rx.State):
     def set_register_confirm_password(self, v: str):
         self.register_confirm_password = v
 
+    def prepare_login_checkout(self):
+        self.auth_mode = "login"
+        self.auth_message = "Inicia sesión para guardar tus boletos en tu cuenta."
+        self.auth_next_url = "/reservar"
+        return rx.redirect("/auth")
+
+    def prepare_register_checkout(self):
+        self.auth_mode = "register"
+        self.auth_message = "Crea una cuenta para guardar tus boletos y reservas."
+        self.auth_next_url = "/reservar"
+        return rx.redirect("/auth")
+
     def login(self):
         if not self.login_email or not self.login_password:
             self.auth_message = "Completa tu correo y contraseña."
@@ -2040,7 +2120,14 @@ class State(rx.State):
             self.auth_message = "Sesión iniciada correctamente."
 
             if usuario["rol"] == "admin":
+                self.auth_next_url = ""
                 return rx.redirect("/admin")
+
+            next_url = self.auth_next_url
+            self.auth_next_url = ""
+
+            if next_url:
+                return rx.redirect(next_url)
 
             return rx.redirect("/")
 
@@ -2085,6 +2172,13 @@ class State(rx.State):
             self.customer_email = usuario["email"]
 
             self.auth_message = "Cuenta creada correctamente."
+
+            next_url = self.auth_next_url
+            self.auth_next_url = ""
+
+            if next_url:
+                return rx.redirect(next_url)
+
             return rx.redirect("/")
 
         except Exception as error:
@@ -2103,6 +2197,7 @@ class State(rx.State):
         self.customer_name = ""
         self.customer_email = ""
         self.auth_message = ""
+        self.auth_next_url = ""
         self.api_message = ""
         self.admin_message = ""
 
