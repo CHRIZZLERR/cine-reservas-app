@@ -35,9 +35,10 @@ class State(rx.State):
     admin_peliculas: list[dict] = []
     admin_funciones: list[dict] = []
     admin_sucursales: list[dict] = []
+    admin_comidas: list[dict] = []
 
     # =====================================================
-    # ADMIN / PELÍCULAS FORM
+    # ADMIN / PEL�CULAS FORM
     # =====================================================
 
     admin_edit_movie_id: int = 0
@@ -71,6 +72,224 @@ class State(rx.State):
     admin_sucursal_direccion: str = ""
     admin_sucursal_ciudad: str = ""
     admin_sucursal_activa: bool = True
+
+    # =====================================================
+    # ADMIN / COMIDAS FORM
+    # =====================================================
+
+    admin_edit_comida_id: int = 0
+    admin_comida_nombre: str = ""
+    admin_comida_descripcion: str = ""
+    admin_comida_precio: str = ""
+    admin_comida_imagen_url: str = ""
+    admin_comida_activa: bool = True
+
+
+    # =====================================================
+    # ADMIN / COMIDAS
+    # =====================================================
+
+    @rx.var
+    def total_admin_comidas(self) -> int:
+        return len(self.admin_comidas)
+
+    @rx.var
+    def total_comidas_activas(self) -> int:
+        return len([c for c in self.admin_comidas if c.get("activa")])
+
+    @rx.var
+    def total_comidas_inactivas(self) -> int:
+        return len([c for c in self.admin_comidas if not c.get("activa")])
+
+    def limpiar_comida_admin(self, comida: dict) -> dict:
+        precio = float(comida.get("precio") or 0)
+
+        imagen_url = str(comida.get("imagen_url") or "")
+        if not imagen_url:
+            imagen_url = "https://via.placeholder.com/500x350/0f1320/ffffff?text=JC+Cinemas"
+
+        return {
+            "id": int(comida.get("id", 0)),
+            "nombre": str(comida.get("nombre") or ""),
+            "descripcion": str(comida.get("descripcion") or ""),
+            "precio": precio,
+            "precio_texto": f"RD${precio:,.0f}",
+            "imagen_url": imagen_url,
+            "activa": bool(comida.get("activa", False)),
+            "fecha_creacion": str(comida.get("fecha_creacion") or ""),
+        }
+
+    def load_admin_comidas_page(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para ver comidas."
+            return
+
+        self.load_admin_comidas()
+
+    def load_admin_comidas(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para ver comidas."
+            return
+
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/admin/comidas",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudieron cargar las comidas.")
+                self.admin_comidas = []
+                return
+
+            comidas_limpias = [
+                self.limpiar_comida_admin(comida)
+                for comida in data
+            ]
+
+            comidas_limpias.sort(key=lambda c: int(c.get("id", 0)), reverse=True)
+            self.admin_comidas = comidas_limpias
+
+        except Exception as error:
+            self.admin_message = f"Error cargando comidas: {str(error)}"
+            self.admin_comidas = []
+
+    def set_admin_comida_nombre(self, v: str):
+        self.admin_comida_nombre = v
+
+    def set_admin_comida_descripcion(self, v: str):
+        self.admin_comida_descripcion = v
+
+    def set_admin_comida_precio(self, v: str):
+        self.admin_comida_precio = v
+
+    def set_admin_comida_imagen_url(self, v: str):
+        self.admin_comida_imagen_url = v
+
+    def set_admin_comida_activa(self, v: bool):
+        self.admin_comida_activa = v
+
+    def clear_admin_comida_form(self):
+        self.admin_edit_comida_id = 0
+        self.admin_comida_nombre = ""
+        self.admin_comida_descripcion = ""
+        self.admin_comida_precio = ""
+        self.admin_comida_imagen_url = ""
+        self.admin_comida_activa = True
+        self.admin_message = ""
+
+    def select_admin_comida(self, comida_id: int):
+        self.admin_message = ""
+
+        for comida in self.admin_comidas:
+            if int(comida.get("id", 0)) == comida_id:
+                self.admin_edit_comida_id = comida_id
+                self.admin_comida_nombre = str(comida.get("nombre", ""))
+                self.admin_comida_descripcion = str(comida.get("descripcion", ""))
+                self.admin_comida_precio = str(int(float(comida.get("precio", 0))))
+                self.admin_comida_imagen_url = str(comida.get("imagen_url", ""))
+                self.admin_comida_activa = bool(comida.get("activa", True))
+
+                self.admin_message = f"Editando comida #{comida_id}. Modifica los datos arriba y guarda los cambios."
+                return rx.call_script("window.scrollTo({ top: 0, behavior: 'smooth' });")
+
+        self.admin_message = "No se encontró la comida seleccionada."
+
+    def save_admin_comida(self):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para guardar comidas."
+            return
+
+        if not self.admin_comida_nombre.strip():
+            self.admin_message = "El nombre de la comida es obligatorio."
+            return
+
+        if not self.admin_comida_precio.strip():
+            self.admin_message = "El precio es obligatorio."
+            return
+
+        try:
+            precio = float(self.admin_comida_precio)
+        except ValueError:
+            self.admin_message = "El precio debe ser un número válido."
+            return
+
+        if precio <= 0:
+            self.admin_message = "El precio debe ser mayor que 0."
+            return
+
+        payload = {
+            "nombre": self.admin_comida_nombre.strip(),
+            "descripcion": self.admin_comida_descripcion.strip(),
+            "precio": precio,
+            "imagen_url": self.admin_comida_imagen_url.strip(),
+            "activa": self.admin_comida_activa,
+        }
+
+        try:
+            if self.admin_edit_comida_id > 0:
+                response = httpx.put(
+                    f"{API_BASE_URL}/admin/comidas/{self.admin_edit_comida_id}",
+                    json=payload,
+                    timeout=10,
+                )
+            else:
+                response = httpx.post(
+                    f"{API_BASE_URL}/admin/comidas",
+                    json=payload,
+                    timeout=10,
+                )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo guardar la comida.")
+                return
+
+            self.admin_message = data.get("mensaje", "Comida guardada correctamente.")
+            self.clear_admin_comida_form()
+            self.load_admin_comidas()
+            self.food_loaded = False
+
+            return rx.call_script("window.scrollTo({ top: 0, behavior: 'smooth' });")
+
+        except Exception as error:
+            self.admin_message = f"Error guardando comida: {str(error)}"
+
+    def toggle_admin_comida_status(self, comida_id: int):
+        self.admin_message = ""
+
+        if self.logged_user_role != "admin":
+            self.admin_message = "No tienes permisos para cambiar el estado de comidas."
+            return
+
+        try:
+            response = httpx.delete(
+                f"{API_BASE_URL}/admin/comidas/{comida_id}",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                self.admin_message = data.get("detail", "No se pudo cambiar el estado de la comida.")
+                return
+
+            self.admin_message = data.get("mensaje", "Estado de comida actualizado correctamente.")
+            self.clear_admin_comida_form()
+            self.load_admin_comidas()
+            self.food_loaded = False
+
+        except Exception as error:
+            self.admin_message = f"Error cambiando estado de comida: {str(error)}"
 
     # =====================================================
     # ADMIN / TMDB
@@ -127,6 +346,8 @@ class State(rx.State):
     seats: list[dict] = INIT_SEATS
     selected_seats: list[str] = []
     food_cart: list[dict] = FOOD_MENU
+    food_loaded: bool = False
+    food_message: str = ""
     booking_step: int = 1
 
     customer_name: str = ""
@@ -189,7 +410,7 @@ class State(rx.State):
             return 0
 
     # =====================================================
-    # PELÍCULAS PÚBLICAS DESDE API
+    # PEL�CULAS P�BLICAS DESDE API
     # =====================================================
 
     def limpiar_pelicula_publica(self, pelicula: dict) -> dict:
@@ -222,7 +443,7 @@ class State(rx.State):
         if estado not in ["cartelera", "proximamente", "inactiva"]:
             estado = "cartelera"
 
-        titulo = str(pelicula.get("titulo") or pelicula.get("title") or "Sin título")
+        titulo = str(pelicula.get("titulo") or pelicula.get("title") or "Sin t�tulo")
         sinopsis = str(pelicula.get("sinopsis") or pelicula.get("descripcion") or "")
 
         duracion_raw = pelicula.get("duracion_minutos") or pelicula.get("duracion") or 0
@@ -273,7 +494,7 @@ class State(rx.State):
             data = response.json()
 
             if response.status_code != 200:
-                self.public_movies_message = "No se pudieron cargar las películas desde la API."
+                self.public_movies_message = "No se pudieron cargar las pel�culas desde la API."
                 self.public_movies = [self.limpiar_pelicula_publica(m) for m in MOVIES]
                 self.public_movies_loaded = True
                 return
@@ -385,7 +606,7 @@ class State(rx.State):
         ]
 
     # =====================================================
-    # FUNCIONES / HORARIOS PÚBLICOS
+    # FUNCIONES / HORARIOS P�BLICOS
     # =====================================================
 
     @rx.var
@@ -411,7 +632,7 @@ class State(rx.State):
             ):
                 hora = str(funcion.get("hora", ""))
                 sala = str(funcion.get("sala", ""))
-                label = f"{hora} · {sala}"
+                label = f"{hora} � {sala}"
                 horarios.append(label)
 
         return horarios
@@ -469,7 +690,7 @@ class State(rx.State):
         self.api_message = ""
 
         for funcion in self.funciones:
-            label = f"{funcion.get('hora')} · {funcion.get('sala')}"
+            label = f"{funcion.get('hora')} � {funcion.get('sala')}"
 
             if (
                 funcion.get("sucursal") == self.selected_location
@@ -497,7 +718,7 @@ class State(rx.State):
         for funcion in self.funciones:
             hora = str(funcion.get("hora", ""))
             sala = str(funcion.get("sala", ""))
-            label = f"{hora} · {sala}"
+            label = f"{hora} � {sala}"
 
             if (
                 funcion.get("sucursal") == self.selected_location
@@ -552,12 +773,17 @@ class State(rx.State):
         self.api_message = ""
 
         if not self.recuperar_funcion_seleccionada():
-            self.api_message = "Selecciona una función válida antes de continuar."
+            self.api_message = "Selecciona una funci�n v�lida antes de continuar."
             return
 
         self.booking_step = 1
         self.selected_seats = []
-        self.food_cart = [dict(item) for item in FOOD_MENU]
+
+        if not self.food_loaded:
+            self.load_food_menu()
+        else:
+            self.reset_food_quantities()
+
         self.load_reserved_seats()
 
         return rx.redirect("/reservar")
@@ -604,7 +830,7 @@ class State(rx.State):
         if self.booking_step == 3:
             return "Comida y carrito"
         if self.booking_step == 4:
-            return "Pago y confirmación"
+            return "Pago y confirmaci�n"
         return "Reserva confirmada"
 
     @rx.var
@@ -683,7 +909,7 @@ class State(rx.State):
             f"Hora: {self.selected_showtime}\n"
             f"Asientos: {self.selected_seats_text}\n"
             f"Dulceria: {self.selected_food_text}\n"
-            f"Método de pago: {self.selected_payment_method}\n"
+            f"M�todo de pago: {self.selected_payment_method}\n"
             f"Total: RD${self.gran_total}"
         )
 
@@ -698,17 +924,17 @@ class State(rx.State):
         body = quote(
             f"Hola {self.reservation_customer_name},\n\n"
             f"Tu reserva fue creada correctamente.\n\n"
-            f"Código: {self.reservation_code}\n"
-            f"Película: {self.current_movie['titulo']}\n"
+            f"C�digo: {self.reservation_code}\n"
+            f"Pel�cula: {self.current_movie['titulo']}\n"
             f"Cine: {self.selected_location}\n"
             f"Fecha: {self.selected_date}\n"
             f"Hora: {self.selected_showtime}\n"
             f"Asientos: {self.selected_seats_text}\n"
-            f"Dulcería: {self.selected_food_text}\n"
-            f"Método de pago: {self.selected_payment_method}\n"
+            f"Dulcer�a: {self.selected_food_text}\n"
+            f"M�todo de pago: {self.selected_payment_method}\n"
             f"Total: RD${self.gran_total}\n\n"
             f"QR de la reserva:\n{self.reservation_qr_url}\n\n"
-            f"Presenta este código o QR en taquilla."
+            f"Presenta este c�digo o QR en taquilla."
         )
 
         return f"mailto:{self.reservation_customer_email}?subject={subject}&body={body}"
@@ -904,7 +1130,7 @@ class State(rx.State):
                         "nombre_cliente": str(reserva.get("nombre_cliente", "")),
                         "email_cliente": str(reserva.get("email_cliente", "")),
                         "telefono_cliente": str(reserva.get("telefono_cliente", "")),
-                        "cliente_texto": f"{reserva.get('nombre_cliente', '')} · {reserva.get('email_cliente', '')}",
+                        "cliente_texto": f"{reserva.get('nombre_cliente', '')} � {reserva.get('email_cliente', '')}",
                         "cantidad_asientos": int(reserva.get("cantidad_asientos", 0)),
                         "total": total,
                         "total_texto": f"RD${total:,.0f}",
@@ -958,7 +1184,7 @@ class State(rx.State):
             self.admin_message = f"Error conectando con el servidor: {str(error)}"
 
     # =====================================================
-    # ADMIN / PELÍCULAS
+    # ADMIN / PEL�CULAS
     # =====================================================
 
     @rx.var
@@ -1018,7 +1244,7 @@ class State(rx.State):
         self.admin_message = ""
 
         if self.logged_user_role != "admin":
-            self.admin_message = "No tienes permisos para ver películas."
+            self.admin_message = "No tienes permisos para ver pel�culas."
             return
 
         try:
@@ -1030,7 +1256,7 @@ class State(rx.State):
             data = response.json()
 
             if response.status_code != 200:
-                self.admin_message = data.get("detail", "No se pudieron cargar las películas.")
+                self.admin_message = data.get("detail", "No se pudieron cargar las pel�culas.")
                 self.admin_peliculas = []
                 return
 
@@ -1100,15 +1326,15 @@ class State(rx.State):
         self.admin_message = ""
 
         if self.logged_user_role != "admin":
-            self.admin_message = "No tienes permisos para modificar películas."
+            self.admin_message = "No tienes permisos para modificar pel�culas."
             return
 
         if self.admin_edit_movie_id <= 0:
-            self.admin_message = "Selecciona una película para editar."
+            self.admin_message = "Selecciona una pel�cula para editar."
             return
 
         if not self.admin_movie_titulo:
-            self.admin_message = "El título es obligatorio."
+            self.admin_message = "El t�tulo es obligatorio."
             return
 
         try:
@@ -1133,10 +1359,10 @@ class State(rx.State):
             data = response.json()
 
             if response.status_code != 200:
-                self.admin_message = data.get("detail", "No se pudo actualizar la película.")
+                self.admin_message = data.get("detail", "No se pudo actualizar la pel�cula.")
                 return
 
-            self.admin_message = data.get("mensaje", "Película actualizada correctamente.")
+            self.admin_message = data.get("mensaje", "Pel�cula actualizada correctamente.")
             self.clear_admin_pelicula_form()
             self.load_admin_peliculas()
 
@@ -1147,7 +1373,7 @@ class State(rx.State):
         self.admin_message = ""
 
         if self.logged_user_role != "admin":
-            self.admin_message = "No tienes permisos para desactivar películas."
+            self.admin_message = "No tienes permisos para desactivar pel�culas."
             return
 
         try:
@@ -1159,10 +1385,10 @@ class State(rx.State):
             data = response.json()
 
             if response.status_code != 200:
-                self.admin_message = data.get("detail", "No se pudo desactivar la película.")
+                self.admin_message = data.get("detail", "No se pudo desactivar la pel�cula.")
                 return
 
-            self.admin_message = data.get("mensaje", "Película desactivada correctamente.")
+            self.admin_message = data.get("mensaje", "Pel�cula desactivada correctamente.")
             self.load_admin_peliculas()
 
         except Exception as error:
@@ -1187,7 +1413,7 @@ class State(rx.State):
             "id": int(funcion.get("id", 0)),
             "pelicula_id": int(funcion.get("pelicula_id", 0)),
             "sucursal_id": int(funcion.get("sucursal_id", 0)),
-            "pelicula": str(funcion.get("pelicula") or funcion.get("titulo") or "Sin película"),
+            "pelicula": str(funcion.get("pelicula") or funcion.get("titulo") or "Sin pel�cula"),
             "sucursal": str(funcion.get("sucursal") or funcion.get("nombre_sucursal") or "Sin sucursal"),
             "fecha": str(funcion.get("fecha") or ""),
             "hora": str(funcion.get("hora") or ""),
@@ -1309,11 +1535,11 @@ class State(rx.State):
                 self.admin_funcion_sala = str(funcion.get("sala", ""))
                 self.admin_funcion_precio = str(int(float(funcion.get("precio", 0))))
 
-                self.admin_message = f"Editando función #{funcion_id}. Modifica los datos arriba y guarda los cambios."
+                self.admin_message = f"Editando funci�n #{funcion_id}. Modifica los datos arriba y guarda los cambios."
 
                 return rx.call_script("window.scrollTo({ top: 0, behavior: 'smooth' });")
 
-        self.admin_message = "No se encontró la función seleccionada."
+        self.admin_message = "No se encontr� la funci�n seleccionada."
 
     def save_admin_funcion(self):
         self.admin_message = ""
@@ -1330,7 +1556,7 @@ class State(rx.State):
             or not self.admin_funcion_sala
             or not self.admin_funcion_precio
         ):
-            self.admin_message = "Completa todos los campos de la función."
+            self.admin_message = "Completa todos los campos de la funci�n."
             return
 
         try:
@@ -1359,20 +1585,20 @@ class State(rx.State):
             data = response.json()
 
             if response.status_code != 200:
-                self.admin_message = data.get("detail", "No se pudo guardar la función.")
+                self.admin_message = data.get("detail", "No se pudo guardar la funci�n.")
                 return
 
-            self.admin_message = data.get("mensaje", "Función guardada correctamente.")
+            self.admin_message = data.get("mensaje", "Funci�n guardada correctamente.")
             self.clear_admin_funcion_form()
             self.load_admin_funciones()
 
             return rx.call_script("window.scrollTo({ top: 0, behavior: 'smooth' });")
 
         except ValueError:
-            self.admin_message = "Los campos ID y precio deben ser números válidos."
+            self.admin_message = "Los campos ID y precio deben ser n�meros v�lidos."
 
         except Exception as error:
-            self.admin_message = f"Error guardando función: {str(error)}"
+            self.admin_message = f"Error guardando funci�n: {str(error)}"
 
     def delete_admin_funcion(self, funcion_id: int):
         self.admin_message = ""
@@ -1390,14 +1616,14 @@ class State(rx.State):
             data = response.json()
 
             if response.status_code != 200:
-                self.admin_message = data.get("detail", "No se pudo eliminar la función.")
+                self.admin_message = data.get("detail", "No se pudo eliminar la funci�n.")
                 return
 
-            self.admin_message = data.get("mensaje", "Función eliminada correctamente.")
+            self.admin_message = data.get("mensaje", "Funci�n eliminada correctamente.")
             self.load_admin_funciones()
 
         except Exception as error:
-            self.admin_message = f"Error eliminando función: {str(error)}"
+            self.admin_message = f"Error eliminando funci�n: {str(error)}"
 
     # =====================================================
     # ADMIN / SUCURSALES
@@ -1451,7 +1677,7 @@ class State(rx.State):
 
                 return rx.call_script("window.scrollTo({ top: 0, behavior: 'smooth' });")
 
-        self.admin_message = "No se encontró la sucursal seleccionada."
+        self.admin_message = "No se encontr� la sucursal seleccionada."
 
     def save_admin_sucursal(self):
         self.admin_message = ""
@@ -1465,7 +1691,7 @@ class State(rx.State):
             or not self.admin_sucursal_direccion.strip()
             or not self.admin_sucursal_ciudad.strip()
         ):
-            self.admin_message = "Completa nombre, dirección y ciudad."
+            self.admin_message = "Completa nombre, direcci�n y ciudad."
             return
 
         payload_create = {
@@ -1551,14 +1777,14 @@ class State(rx.State):
         if not isinstance(movie, dict):
             return {
                 "id": 0,
-                "title": "Resultado inválido",
-                "overview": "TMDB devolvió un formato no compatible.",
-                "overview_short": "TMDB devolvió un formato no compatible.",
+                "title": "Resultado inv�lido",
+                "overview": "TMDB devolvi� un formato no compatible.",
+                "overview_short": "TMDB devolvi� un formato no compatible.",
                 "poster_url": "https://via.placeholder.com/400x600/0f1320/ffffff?text=TMDB",
                 "release_date": "",
                 "year": "Sin fecha",
                 "rating": 0.0,
-                "rating_text": "⭐ 0.0",
+                "rating_text": "? 0.0",
             }
 
         poster_url = str(
@@ -1581,14 +1807,14 @@ class State(rx.State):
             or movie.get("titulo")
             or movie.get("name")
             or movie.get("nombre")
-            or "Sin título"
+            or "Sin t�tulo"
         )
 
         overview = str(
             movie.get("overview")
             or movie.get("sinopsis")
             or movie.get("descripcion")
-            or "Sin descripción disponible."
+            or "Sin descripci�n disponible."
         )
 
         release_date = str(
@@ -1618,7 +1844,7 @@ class State(rx.State):
             "release_date": release_date,
             "year": year,
             "rating": rating_float,
-            "rating_text": f"⭐ {rating_float:.1f}",
+            "rating_text": f"? {rating_float:.1f}",
         }
 
     def extraer_resultados_tmdb(self, data) -> list:
@@ -1653,7 +1879,7 @@ class State(rx.State):
             return
 
         if not self.tmdb_query.strip():
-            self.admin_message = "Escribe el nombre de una película."
+            self.admin_message = "Escribe el nombre de una pel�cula."
             return
 
         try:
@@ -1669,7 +1895,7 @@ class State(rx.State):
             try:
                 data = response.json()
             except Exception:
-                self.admin_message = "TMDB devolvió una respuesta que no es JSON."
+                self.admin_message = "TMDB devolvi� una respuesta que no es JSON."
                 self.tmdb_results = []
                 return
 
@@ -1693,7 +1919,7 @@ class State(rx.State):
             self.tmdb_results = resultados_limpios
 
             if len(resultados_limpios) == 0:
-                self.admin_message = "No se encontraron resultados para esa búsqueda."
+                self.admin_message = "No se encontraron resultados para esa b�squeda."
             else:
                 self.admin_message = f"Se encontraron {len(resultados_limpios)} resultados."
 
@@ -1717,7 +1943,7 @@ class State(rx.State):
             try:
                 data = response.json()
             except Exception:
-                self.admin_message = "TMDB devolvió un detalle que no es JSON."
+                self.admin_message = "TMDB devolvi� un detalle que no es JSON."
                 return
 
             if response.status_code != 200:
@@ -1761,11 +1987,11 @@ class State(rx.State):
         self.admin_message = ""
 
         if self.logged_user_role != "admin":
-            self.admin_message = "No tienes permisos para importar películas."
+            self.admin_message = "No tienes permisos para importar pel�culas."
             return
 
         if int(tmdb_id) <= 0:
-            self.admin_message = "ID de TMDB inválido."
+            self.admin_message = "ID de TMDB inv�lido."
             return
 
         try:
@@ -1777,20 +2003,20 @@ class State(rx.State):
             try:
                 data = response.json()
             except Exception:
-                self.admin_message = "El servidor devolvió una respuesta inválida al importar."
+                self.admin_message = "El servidor devolvi� una respuesta inv�lida al importar."
                 return
 
             if response.status_code != 200:
                 if isinstance(data, dict):
-                    self.admin_message = data.get("detail", "No se pudo importar la película.")
+                    self.admin_message = data.get("detail", "No se pudo importar la pel�cula.")
                 else:
-                    self.admin_message = "No se pudo importar la película."
+                    self.admin_message = "No se pudo importar la pel�cula."
                 return
 
             if isinstance(data, dict):
-                self.admin_message = data.get("mensaje", "Película importada correctamente.")
+                self.admin_message = data.get("mensaje", "Pel�cula importada correctamente.")
             else:
-                self.admin_message = "Película importada correctamente."
+                self.admin_message = "Pel�cula importada correctamente."
 
             try:
                 self.load_admin_peliculas()
@@ -1798,10 +2024,10 @@ class State(rx.State):
                 pass
 
         except Exception as error:
-            self.admin_message = f"Error importando película desde TMDB: {str(error)}"
+            self.admin_message = f"Error importando pel�cula desde TMDB: {str(error)}"
 
     # =====================================================
-    # HERO / NAVEGACIÓN
+    # HERO / NAVEGACI�N
     # =====================================================
 
     def next_hero(self):
@@ -1896,7 +2122,7 @@ class State(rx.State):
         self.api_message = ""
 
         if not self.recuperar_funcion_seleccionada():
-            self.api_message = "La función seleccionada se perdió. Vuelve a elegir cine, fecha y horario."
+            self.api_message = "La funci�n seleccionada se perdi�. Vuelve a elegir cine, fecha y horario."
             return rx.redirect("/pelicula")
 
         if self.booking_step == 1:
@@ -1904,17 +2130,17 @@ class State(rx.State):
                 self.customer_name = self.logged_user_name
                 self.customer_email = self.logged_user_email
                 if not self.customer_phone.strip():
-                    self.api_message = "Completa tu teléfono para continuar."
+                    self.api_message = "Completa tu tel�fono para continuar."
                     return
             else:
                 if not self.customer_name.strip():
                     self.api_message = "Completa tu nombre para continuar como invitado."
                     return
                 if not self.customer_email.strip():
-                    self.api_message = "Completa tu correo electrónico para recibir tu código."
+                    self.api_message = "Completa tu correo electr�nico para recibir tu c�digo."
                     return
                 if not self.customer_phone.strip():
-                    self.api_message = "Completa tu teléfono para continuar."
+                    self.api_message = "Completa tu tel�fono para continuar."
                     return
 
         if self.booking_step == 2 and not self.selected_seats:
@@ -1931,18 +2157,82 @@ class State(rx.State):
             self.booking_step -= 1
 
     # =====================================================
-    # DULCERÍA
+    # COMIDA / DULCER�A DESDE API
     # =====================================================
+
+    def limpiar_comida_publica(self, comida: dict) -> dict:
+        imagen = str(
+            comida.get("imagen_url")
+            or comida.get("image")
+            or comida.get("imagen")
+            or ""
+        )
+
+        if not imagen:
+            imagen = "https://via.placeholder.com/500x350/0f1320/ffffff?text=JC+Cinemas"
+
+        return {
+            "id": str(comida.get("id", "")),
+            "nombre": str(comida.get("nombre") or "Producto"),
+            "descripcion": str(comida.get("descripcion") or ""),
+            "precio": int(float(comida.get("precio") or 0)),
+            "image": imagen,
+            "qty": int(comida.get("qty", 0)),
+            "activa": bool(comida.get("activa", True)),
+        }
+
+    def load_food_menu(self):
+        self.food_message = ""
+
+        try:
+            response = httpx.get(
+                f"{API_BASE_URL}/comidas",
+                timeout=10,
+            )
+
+            data = response.json()
+
+            if response.status_code != 200:
+                if isinstance(data, dict):
+                    self.food_message = data.get("detail", "No se pudieron cargar las comidas.")
+                else:
+                    self.food_message = "No se pudieron cargar las comidas."
+
+                self.food_cart = [dict(item) for item in FOOD_MENU]
+                self.food_loaded = True
+                return
+
+            comidas_limpias = []
+
+            for comida in data:
+                limpia = self.limpiar_comida_publica(comida)
+
+                if limpia["activa"]:
+                    comidas_limpias.append(limpia)
+
+            self.food_cart = comidas_limpias
+            self.food_loaded = True
+
+        except Exception as error:
+            self.food_message = f"Error cargando comidas: {str(error)}"
+            self.food_cart = [dict(item) for item in FOOD_MENU]
+            self.food_loaded = True
+
+    def reset_food_quantities(self):
+        self.food_cart = [
+            {**item, "qty": 0}
+            for item in self.food_cart
+        ]
 
     def add_food(self, fid: str):
         self.food_cart = [
-            {**item, "qty": item.get("qty", 0) + 1} if item["id"] == fid else item
+            {**item, "qty": item.get("qty", 0) + 1} if str(item["id"]) == str(fid) else item
             for item in self.food_cart
         ]
 
     def remove_food(self, fid: str):
         self.food_cart = [
-            {**item, "qty": max(0, item.get("qty", 0) - 1)} if item["id"] == fid else item
+            {**item, "qty": max(0, item.get("qty", 0) - 1)} if str(item["id"]) == str(fid) else item
             for item in self.food_cart
         ]
 
@@ -1971,8 +2261,8 @@ class State(rx.State):
         self.reservation_message = ""
 
         if not self.recuperar_funcion_seleccionada():
-            self.api_message = "Debes volver a seleccionar una función antes de confirmar."
-            self.reservation_message = "Debes volver a seleccionar una función antes de confirmar."
+            self.api_message = "Debes volver a seleccionar una funci�n antes de confirmar."
+            self.reservation_message = "Debes volver a seleccionar una funci�n antes de confirmar."
             return rx.redirect("/pelicula")
 
         if not self.selected_seats:
@@ -1992,13 +2282,13 @@ class State(rx.State):
                 return
 
             if not self.customer_email.strip():
-                self.api_message = "Completa tu correo electrónico."
-                self.reservation_message = "Completa tu correo electrónico."
+                self.api_message = "Completa tu correo electr�nico."
+                self.reservation_message = "Completa tu correo electr�nico."
                 return
 
         if not self.customer_phone.strip():
-            self.api_message = "Completa tu teléfono."
-            self.reservation_message = "Completa tu teléfono."
+            self.api_message = "Completa tu tel�fono."
+            self.reservation_message = "Completa tu tel�fono."
             return
 
         try:
@@ -2035,7 +2325,7 @@ class State(rx.State):
     def new_booking(self):
         self.booking_step = 1
         self.selected_seats = []
-        self.food_cart = [dict(item) for item in FOOD_MENU]
+        self.reset_food_quantities()
         self.seats = [dict(s) for s in INIT_SEATS]
         self.customer_phone = ""
         self.reservation_code = ""
@@ -2075,7 +2365,7 @@ class State(rx.State):
 
     def prepare_login_checkout(self):
         self.auth_mode = "login"
-        self.auth_message = "Inicia sesión para guardar tus boletos en tu cuenta."
+        self.auth_message = "Inicia sesi�n para guardar tus boletos en tu cuenta."
         self.auth_next_url = "/reservar"
         return rx.redirect("/auth")
 
@@ -2087,7 +2377,7 @@ class State(rx.State):
 
     def login(self):
         if not self.login_email or not self.login_password:
-            self.auth_message = "Completa tu correo y contraseña."
+            self.auth_message = "Completa tu correo y contrase�a."
             return
 
         try:
@@ -2103,7 +2393,7 @@ class State(rx.State):
             data = response.json()
 
             if response.status_code != 200:
-                self.auth_message = data.get("detail", "No se pudo iniciar sesión.")
+                self.auth_message = data.get("detail", "No se pudo iniciar sesi�n.")
                 return
 
             usuario = data["usuario"]
@@ -2117,7 +2407,7 @@ class State(rx.State):
             self.customer_name = usuario["nombre"]
             self.customer_email = usuario["email"]
 
-            self.auth_message = "Sesión iniciada correctamente."
+            self.auth_message = "Sesi�n iniciada correctamente."
 
             if usuario["rol"] == "admin":
                 self.auth_next_url = ""
@@ -2140,7 +2430,7 @@ class State(rx.State):
             return
 
         if self.register_password != self.register_confirm_password:
-            self.auth_message = "Las contraseñas no coinciden."
+            self.auth_message = "Las contrase�as no coinciden."
             return
 
         try:

@@ -7,6 +7,7 @@ from app.routes import reservas
 from app.routes import sucursales
 from app.routes import tmdb
 from app.routes import auth
+from app.routes import comidas
 
 
 tags_metadata = [
@@ -25,6 +26,10 @@ tags_metadata = [
     {
         "name": "Sucursales",
         "description": "Rutas para consultar y administrar cines o ubicaciones.",
+    },
+    {
+        "name": "Comidas",
+        "description": "Rutas para consultar y administrar comidas y bebidas.",
     },
     {
         "name": "TMDB",
@@ -60,6 +65,7 @@ app.include_router(peliculas.router, tags=["Películas"])
 app.include_router(funciones.router, tags=["Funciones"])
 app.include_router(reservas.router, tags=["Reservas"])
 app.include_router(sucursales.router, tags=["Sucursales"])
+app.include_router(comidas.router, tags=["Comidas"])
 app.include_router(tmdb.router, tags=["TMDB"])
 app.include_router(auth.router, tags=["Autenticación"])
 

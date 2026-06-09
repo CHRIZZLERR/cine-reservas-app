@@ -64,7 +64,6 @@ def stat_card(label: str, value: str, detail: str) -> rx.Component:
 def access_denied() -> rx.Component:
     return rx.box(
         navbar("admin"),
-
         rx.box(
             rx.box(
                 rx.heading(
@@ -118,7 +117,6 @@ def access_denied() -> rx.Component:
             background="radial-gradient(circle at left, rgba(122,0,35,.20), transparent 35%), #030407",
             z_index="1",
         ),
-
         search_overlay(),
         side_menu(),
         class_name="page",
@@ -128,7 +126,6 @@ def access_denied() -> rx.Component:
 def admin_dashboard() -> rx.Component:
     return rx.box(
         navbar("admin"),
-
         rx.box(
             rx.box(
                 rx.text(
@@ -147,7 +144,7 @@ def admin_dashboard() -> rx.Component:
                     margin_bottom="16px",
                 ),
                 rx.text(
-                    "Gestiona películas, funciones, reservas, usuarios y contenido importado desde TMDB.",
+                    "Gestiona películas, funciones, reservas, usuarios, comidas y contenido importado desde TMDB.",
                     color="#b8c0d4",
                     font_size="17px",
                     max_width="760px",
@@ -174,10 +171,9 @@ def admin_dashboard() -> rx.Component:
                     margin_top="26px",
                     wrap="wrap",
                 ),
-                padding_top="70px",
+                padding_top="120px",
                 padding_bottom="45px",
             ),
-
             rx.grid(
                 stat_card("Películas", "CRUD", "Crear, editar, desactivar e importar."),
                 stat_card("Funciones", "Horarios", "Administrar cine, sala, fecha y precio."),
@@ -188,7 +184,6 @@ def admin_dashboard() -> rx.Component:
                 width="100%",
                 margin_bottom="34px",
             ),
-
             rx.grid(
                 admin_card(
                     "🎬",
@@ -215,6 +210,12 @@ def admin_dashboard() -> rx.Component:
                     "/admin/sucursales",
                 ),
                 admin_card(
+                    "🍿",
+                    "Comidas",
+                    "Gestiona productos de dulcería, precios, imágenes y disponibilidad.",
+                    "/admin/comidas",
+                ),
+                admin_card(
                     "👥",
                     "Usuarios",
                     "Visualiza clientes, administradores y estado de cuentas.",
@@ -230,11 +231,9 @@ def admin_dashboard() -> rx.Component:
                 spacing="5",
                 width="100%",
             ),
-
             padding_x="7%",
             padding_bottom="80px",
         ),
-
         search_overlay(),
         side_menu(),
         class_name="page",
